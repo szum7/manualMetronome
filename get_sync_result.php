@@ -6,12 +6,12 @@ $BLINK_SCHEDULE_OFFSET = 10;
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-$synch_id = $data['synch_id'] ?? null;
+$sync_id = $data['sync_id'] ?? null;
 $client_id = $data['client_id'] ?? null;
-//$synch_id = 111;
+//$sync_id = 78567;
 //$client_id = "c_si68ku17";
 
-if (!isset($client_id) || !isset($synch_id)) {
+if (!isset($client_id) || !isset($sync_id)) {
     echo json_encode(["error" => "Missing parameters"]);
     exit;
 }
@@ -22,24 +22,24 @@ $ret = [];
 $stmt = $pdo->prepare(
     "SELECT *
     FROM sync_offsets 
-    WHERE synch_id = ?"
+    WHERE sync_id = ?"
 );
-$stmt->execute([$synch_id]);
+$stmt->execute([$sync_id]);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if (count($rows) == 0) { // First arriving client
     
     // 1. Get all timestamps for this synchId
     $stmt = $pdo->prepare(
-        "SELECT client_id, ts_usec 
+        "SELECT client_id, same_time_ts_usec 
         FROM sync_timestamps 
-        WHERE synch_id = ?
+        WHERE sync_id = ?
         ORDER BY client_id ASC");
-    $stmt->execute([$synch_id]);
+    $stmt->execute([$sync_id]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // 2. Pick the first client as reference
-    $reference = $rows[0]['ts_usec'];
+    $reference = $rows[0]['same_time_ts_usec'];
     $referenceClientId = $rows[0]['client_id'];
 
     // 3. Schedule blink start ~x seconds into the future
@@ -48,13 +48,13 @@ if (count($rows) == 0) { // First arriving client
     // 4. Calculate offsets
     foreach ($rows as $row) {
 
-        $offset = $row['ts_usec'] - $reference;
+        $offset = $row['same_time_ts_usec'] - $reference;
 
         $stmt2 = $pdo->prepare(
-            "INSERT INTO sync_offsets (synch_id, client_id, offset_usec, ref_client_id, blink_start_usec) 
+            "INSERT INTO sync_offsets (sync_id, client_id, offset_usec, ref_client_id, blink_start_usec) 
             VALUES (?, ?, ?, ?, ?)");
         $stmt2->execute([
-            $synch_id, 
+            $sync_id, 
             $row['client_id'], 
             $offset, 
             $referenceClientId, 
@@ -90,16 +90,10 @@ if (count($rows) == 0) { // First arriving client
 }
 
 function formatMicrotime($microtimeFloat) {
-    // Separate seconds and fractional part
     $seconds = floor($microtimeFloat);
     $fraction = $microtimeFloat - $seconds;
-
-    // Format date/time part
     $timeStr = date('H:i:s', $seconds);
-
-    // Get 4 digits from fractional seconds (microseconds)
     $fractionStr = substr(sprintf('%.6f', $fraction), 2, 4);
-
     return "$timeStr.$fractionStr";
 }
 

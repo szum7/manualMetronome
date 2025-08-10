@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0" />
-    <title>MS Metronome</title>
+    <title>M-Sync Meti</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -18,8 +18,8 @@
                 <div id="clientId"></div>
             </div>
             <div class="row" style="margin-top:8px">
-                <div class="muted">Synch ID</div>
-                <input id="synchId" placeholder="e.g. 1" value="123" />
+                <div class="muted">Sync ID</div>
+                <input id="syncId" placeholder="e.g. 1" value="123" />
             </div>
             <div class="row" style="margin-top:8px">
                 <div class="muted">Beep frequency</div>
@@ -32,7 +32,7 @@
         </div>
 
         <div class="muted">Press at the same time.</div>
-        <button id="postBtn" class="btn secondary">Send Synch</button>
+        <button id="postBtn" class="btn secondary">Send Sync</button>
 
         <div class="clock">
             <div class="line">
@@ -58,57 +58,60 @@
         </div>
     </div>
 
+    <script src="scripts.js"></script>
     <script>
         // Endpoints
         const API_SAVE = 'save_timestamp.php';
         const API_GET = 'get_sync_result.php';
 
         // Elements
-        const unadjEl = document.getElementById('unadj');
-        const adjEl = document.getElementById('adj');
-        const blinkEl = document.getElementById('blink');
-        const synchIdInput = document.getElementById('synchId');
-        const postBtn = document.getElementById('postBtn');
-        const getBtn = document.getElementById('getBtn');
+        const EL_UNADJ_TIME = document.getElementById('unadj');
+        const EL_ADJ_TIME = document.getElementById('adj');
+        const EL_BLINK_CIRCLE = document.getElementById('blink');
+        const EL_SYNC_ID = document.getElementById('syncId');
+        const EL_POST_BTN = document.getElementById('postBtn');
+        const EL_GET_BTN = document.getElementById('getBtn');
 
         // Globals
-        const navTimeOriginUsec = Math.round(performance.timeOrigin * 1000);
-        let activeSynchid = null;
-        let offset_usec = null;
-        let clientId = null;
-        let blink_start_usec = null;
+        const _navTimeOriginUsec = Math.round(performance.timeOrigin * 1000);
+        let _activeSyncId = null;
+        let _offsetUsec = null;
+        let _clientId = null;
+        let _blinkStartUsec = null;
         const BEAT_PERIOD_USEC = 1500000;
-        let lastBlinkState = false;
+        let _lastBlinkState = false;
+        let _isMuted = false;
+        let _audioCtx;
 
         // RUN
-        clientId = generateClientId();
+        _clientId = generateClientId();
         requestAnimationFrame(rafTick);
         requestAnimationFrame(blinkTick);
 
         // Functions
-        postBtn.addEventListener('click', async () => { // SEND timers
+        EL_POST_BTN.addEventListener('click', async () => { // SEND timers
 
-            const synchId = parseInt(synchIdInput.value || '0', 10);
-            if (!synchId) {
-                alert('Enter a synch ID (integer)');
+            const syncId = parseInt(EL_SYNC_ID.value || '0', 10);
+            if (!syncId) {
+                alert('Enter a sync ID (integer)');
                 return;
             }
 
             playBeep();
 
-            activeSynchid = synchId;
+            _activeSyncId = syncId;
             const tsUsec = getEpochUsec();
 
             try {
                 const res = await postJson(API_SAVE, {
-                    synch_id: synchId,
-                    client_id: clientId,
-                    ts_usec: tsUsec
+                    sync_id: syncId,
+                    client_id: _clientId,
+                    same_time_ts_usec: tsUsec
                 });
                 if (res.success === true) {
 
-                    log(`Resetted all syncId=${synchId} rows.`);
-                    log(`Timestamp saved: ${synchId}, ${clientId}, ${formatUsec(tsUsec)}`);
+                    log(`Resetted all syncId=${syncId} rows.`);
+                    log(`Timestamp saved: ${syncId}, ${_clientId}, ${formatUsec(tsUsec)}`);
 
                 } else {
                     log(`Error: ${JSON.stringify(res)}`);
@@ -118,26 +121,26 @@
             }
         });
 
-        getBtn.addEventListener('click', async () => { // GET Offset and Blink start
+        EL_GET_BTN.addEventListener('click', async () => { // GET Offset and Blink start
 
-            const synchId = parseInt(synchIdInput.value || '0', 10);
-            if (!synchId) {
-                alert('Enter a synch ID (integer)');
+            const syncId = parseInt(EL_SYNC_ID.value || '0', 10);
+            if (!syncId) {
+                alert('Enter a sync ID (integer)');
                 return;
             }
 
-            activeSynchid = synchId;
+            _activeSyncId = syncId;
 
             try {
                 const res = await postJson(API_GET, {
-                    synch_id: synchId,
-                    client_id: clientId
+                    sync_id: syncId,
+                    client_id: _clientId
                 });
                 if (res.success === true) {
-                    
+
                     log(`Blink start received: ${(res.blink_start_usec_formatted)}`);
 
-                    offset_usec = res.offset_usec;
+                    _offsetUsec = res.offset_usec;
 
                     scheduleBlink(res.blink_start_usec);
                 } else {
@@ -148,70 +151,46 @@
             }
         });
 
-        async function postJson(url, payload) {
-            console.log(JSON.stringify(payload));
-            const r = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(payload)
-            });
-            return r.json();
-        }
-
-        function generateClientId() {
-            let clientId = localStorage.getItem('cs_clientId');
-            if (!clientId) {
-                clientId = 'c_' + Math.random().toString(36).slice(2, 10);
-                localStorage.setItem('cs_clientId', clientId);
-            }
-            document.getElementById('clientId').textContent = clientId;
-            return clientId;
-        }
-
         function rafTick() {
             const now_usecs = clientNowUsec();
-            unadjEl.textContent = formatUsec(now_usecs);
-            if (offset_usec !== null) {
-                const adj_usecs = now_usecs - offset_usec;
-                adjEl.textContent = formatUsec(adj_usecs);
+            EL_UNADJ_TIME.textContent = formatUsec(now_usecs);
+            if (_offsetUsec !== null) {
+                const adj_usecs = now_usecs - _offsetUsec;
+                EL_ADJ_TIME.textContent = formatUsec(adj_usecs);
             } else {
-                adjEl.textContent = '--:--:--.------';
+                EL_ADJ_TIME.textContent = '--:--:--.------';
             }
             requestAnimationFrame(rafTick);
         }
 
-        let isMuted = false;
-        const blinkCircle = document.querySelector('#blink');
-        blinkCircle.style.cursor = 'pointer';  // indicate it’s clickable
-        blinkCircle.addEventListener('click', () => {
-            isMuted = !isMuted;
+        EL_BLINK_CIRCLE.addEventListener('click', () => {
+            _isMuted = !_isMuted;
             updateMuteVisual();
         });
+
         function updateMuteVisual() {
-            if (isMuted) {
-                blinkCircle.style.background = '#fff';
-                blinkCircle.title = "Muted (click to unmute)";
+            if (_isMuted) {
+                EL_BLINK_CIRCLE.style.background = '#fff';
+                EL_BLINK_CIRCLE.title = "Muted (click to unmute)";
             } else {
-                blinkCircle.style.background = '#0b84ff';
-                blinkCircle.title = "Unmuted (click to mute)";
+                EL_BLINK_CIRCLE.style.background = '#0b84ff';
+                EL_BLINK_CIRCLE.title = "Unmuted (click to mute)";
             }
         }
 
         function blinkTick() {
-            if (blink_start_usec && offset_usec !== null) {
-                const ref_now = clientNowUsec() - offset_usec;
-                if (ref_now >= blink_start_usec) {
-                    const since = ref_now - blink_start_usec;
+            if (_blinkStartUsec && _offsetUsec !== null) {
+                const ref_now = clientNowUsec() - _offsetUsec;
+                if (ref_now >= _blinkStartUsec) {
+                    const since = ref_now - _blinkStartUsec;
                     const beatIndex = Math.floor(since / BEAT_PERIOD_USEC);
                     const beatProgress = (since % BEAT_PERIOD_USEC) / BEAT_PERIOD_USEC;
                     const duty = 0.18;
                     const on = beatProgress < duty;
-                    if (on !== lastBlinkState) {
-                        blinkEl.style.opacity = on ? '1' : '0';
-                        lastBlinkState = on;
-                        if (on === true && isMuted === false) {
+                    if (on !== _lastBlinkState) {
+                        EL_BLINK_CIRCLE.style.opacity = on ? '1' : '0';
+                        _lastBlinkState = on;
+                        if (on === true && _isMuted === false) {
                             playBeep();
                         }
                     }
@@ -221,70 +200,11 @@
         }
 
         function clientNowUsec() {
-            return navTimeOriginUsec + Math.round(performance.now() * 1000);
-        }
-
-        function getEpochUsec() {
-            const ms = performance.timeOrigin + performance.now();
-            return Math.round(ms * 1000);
-        }
-
-        function log(msg) {
-            const el = document.getElementById('log');
-            //el.textContent = new Date().toLocaleTimeString() + ' - ' + msg + '\n' + el.textContent;
-            el.textContent = getFormattedTime() + ' - ' + msg + '\n' + el.textContent;
-        }
-
-        function getFormattedTime() {
-            const now = new Date();
-            const h = now.getHours().toString().padStart(2, '0');
-            const m = now.getMinutes().toString().padStart(2, '0');
-            const s = now.getSeconds().toString().padStart(2, '0');
-            let ms = now.getMilliseconds().toString().padStart(4, '0');
-            ms = ms + '0';
-            return `${h}:${m}:${s}.${ms}`;
-        }
-
-        function formatUsec(usec) {
-            const ms = Math.floor(usec / 1000);
-            const date = new Date(ms);
-            const hh = String(date.getHours()).padStart(2, '0');
-            const mm = String(date.getMinutes()).padStart(2, '0');
-            const ss = String(date.getSeconds()).padStart(2, '0');
-            const msec = String(date.getMilliseconds()).padStart(3, '0');
-            const remUsec = String(usec % 1000000).padStart(6, '0');
-            return `${hh}:${mm}:${ss}.${remUsec}`;
-        }
-
-        function safeSetTimeout(fn, ms) {
-            const MAX = 2147483647;
-            let cancelled = false;
-            let id = null;
-
-            function clear() {
-                cancelled = true;
-                if (id !== null) clearTimeout(id);
-            }
-
-            function schedule(remaining) {
-                if (cancelled) return;
-                if (remaining <= MAX) {
-                    id = setTimeout(() => {
-                        if (!cancelled) fn();
-                    }, remaining);
-                } else {
-                    id = setTimeout(() => schedule(remaining - MAX), MAX);
-                }
-            }
-
-            schedule(ms);
-            return {
-                clear
-            };
+            return _navTimeOriginUsec + Math.round(performance.now() * 1000);
         }
 
         function scheduleBlink(serverBlinkUsec) {
-            blink_start_usec = Number(serverBlinkUsec);
+            _blinkStartUsec = Number(serverBlinkUsec);
 
             if (window._blinkStartTimerHandle) {
                 try {
@@ -295,56 +215,51 @@
                 window._blinkStartTimerHandle = null;
             }
 
-            if (offset_usec === null) {
+            if (_offsetUsec === null) {
                 log('Offset not yet available — will retry scheduling in 100ms');
                 setTimeout(() => scheduleBlink(serverBlinkUsec), 100);
                 return;
             }
 
-            const ref_now = clientNowUsec() - offset_usec;
-            const delta_usec = blink_start_usec - ref_now;
+            const ref_now = clientNowUsec() - _offsetUsec;
+            const delta_usec = _blinkStartUsec - ref_now;
             const delta_ms = Math.max(0, Math.ceil(delta_usec / 1000));
-
-            //log('Blink starts in ~' + (delta_ms / 1000).toFixed(3) + ' s (delta_ms=' + delta_ms + ')');
 
             const LEAD_MS = 20;
             const wake_ms = Math.max(0, delta_ms - LEAD_MS);
 
             window._blinkStartTimerHandle = safeSetTimeout(() => {
-                lastBlinkState = null;
+                _lastBlinkState = null;
                 requestAnimationFrame(() => {});
-                //log('Woke for blink start (lead ' + LEAD_MS + 'ms).');
             }, wake_ms);
 
             if (delta_ms === 0) {
-                lastBlinkState = null;
+                _lastBlinkState = null;
                 requestAnimationFrame(() => {});
             }
         }
 
-        let audioCtx;
-
         function initAudio() {
-            audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+            _audioCtx = new(window.AudioContext || window.webkitAudioContext)();
         }
 
         function playBeep() {
-            if (!audioCtx) initAudio();
+            if (!_audioCtx) initAudio();
 
             const frequency = parseFloat(document.getElementById("beepFrequency").value);
 
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+            const osc = _audioCtx.createOscillator();
+            const gain = _audioCtx.createGain();
 
             osc.type = "sine"; // "sine", "square", "triangle", "sawtooth"
             osc.frequency.value = frequency; // frequency from dropdown
             gain.gain.value = 0.1;
 
             osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            gain.connect(_audioCtx.destination);
 
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.1); // 0.1s beep
+            osc.stop(_audioCtx.currentTime + 0.1); // 0.1s beep
         }
     </script>
 </body>
