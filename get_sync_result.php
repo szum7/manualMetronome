@@ -1,40 +1,106 @@
 <?php
+// get_sync_result.php
 require 'config.php';
-// Clients poll this endpoint to get their computed offset and blink start
-// GET params: synchid, clientId
 
-$synchid = intval($_GET['synchid'] ?? 0);
-$clientId = trim($_GET['clientId'] ?? '');
-if ($synchid <= 0 || $clientId === '') {
-    http_response_code(400);
-    echo json_encode(['error' => 'missing params']);
+$BLINK_SCHEDULE_OFFSET = 10;
+
+$data = json_decode(file_get_contents("php://input"), true);
+
+$synch_id = $data['synch_id'] ?? null;
+$client_id = $data['client_id'] ?? null;
+//$synch_id = 111;
+//$client_id = "c_si68ku17";
+
+if (!isset($client_id) || !isset($synch_id)) {
+    echo json_encode(["error" => "Missing parameters"]);
     exit;
 }
 
-try {
-    $pdo = pdo_connect();
-    // find offset
-    $stmt = $pdo->prepare('SELECT offset_usec, ref_client_id FROM sync_offsets WHERE synchid = ? AND client_id = ? LIMIT 1');
-    $stmt->execute([$synchid, $clientId]);
-    $off = $stmt->fetch();
+$pdo = pdo_connect();
+$ret = [];
 
-    // find blink start
-    $stmt2 = $pdo->prepare('SELECT blink_start_usec FROM sync_session WHERE synchid = ? LIMIT 1');
-    $stmt2->execute([$synchid]);
-    $s = $stmt2->fetch();
+$stmt = $pdo->prepare(
+    "SELECT *
+    FROM sync_offsets 
+    WHERE synch_id = ?"
+);
+$stmt->execute([$synch_id]);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    if (!$off) {
-        echo json_encode(['ready' => false]);
-        exit;
+if (count($rows) == 0) { // First arriving client
+    
+    // 1. Get all timestamps for this synchId
+    $stmt = $pdo->prepare(
+        "SELECT client_id, ts_usec 
+        FROM sync_timestamps 
+        WHERE synch_id = ?
+        ORDER BY client_id ASC");
+    $stmt->execute([$synch_id]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // 2. Pick the first client as reference
+    $reference = $rows[0]['ts_usec'];
+    $referenceClientId = $rows[0]['client_id'];
+
+    // 3. Schedule blink start ~x seconds into the future
+    $blink_start_usec = microtime(true) + $BLINK_SCHEDULE_OFFSET;
+
+    // 4. Calculate offsets
+    foreach ($rows as $row) {
+
+        $offset = $row['ts_usec'] - $reference;
+
+        $stmt2 = $pdo->prepare(
+            "INSERT INTO sync_offsets (synch_id, client_id, offset_usec, ref_client_id, blink_start_usec) 
+            VALUES (?, ?, ?, ?, ?)");
+        $stmt2->execute([
+            $synch_id, 
+            $row['client_id'], 
+            $offset, 
+            $referenceClientId, 
+            $blink_start_usec]);
+
+        if ($client_id == $row["client_id"]) {
+            $ret = [
+                "offset_usec" => $offset,
+                "ref_client_id" => $referenceClientId
+            ];
+        }
     }
 
-    $offset_usec = (int)$off['offset_usec'];
-    $ref_client_id = $off['ref_client_id'];
-    $blink_start = $s ? (int)$s['blink_start_usec'] : null;
+    $ret["blink_start_usec"] = $blink_start_usec;
+    $ret["blink_start_usec_formatted"] = formatMicrotime($blink_start_usec);
+    $ret["success"] = true;
 
-    echo json_encode(['ready' => true, 'offset_usec' => $offset_usec, 'ref_client_id' => $ref_client_id, 'blink_start_usec' => $blink_start]);
+} else { // Other not-first arriving clients
 
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+    $curr = null;
+    foreach ($rows as $row) {
+        if ($client_id == $row["client_id"]) {
+            $curr = $row;
+        }
+    }
+    $ret = [
+        "success" => true,
+        "offset_usec" => $curr["offset_usec"],
+        "ref_client_id" => $curr["ref_client_id"],
+        "blink_start_usec" => $curr["blink_start_usec"],
+        "blink_start_usec_formatted" => formatMicrotime($curr["blink_start_usec"])
+    ];
 }
+
+function formatMicrotime($microtimeFloat) {
+    // Separate seconds and fractional part
+    $seconds = floor($microtimeFloat);
+    $fraction = $microtimeFloat - $seconds;
+
+    // Format date/time part
+    $timeStr = date('H:i:s', $seconds);
+
+    // Get 4 digits from fractional seconds (microseconds)
+    $fractionStr = substr(sprintf('%.6f', $fraction), 2, 4);
+
+    return "$timeStr.$fractionStr";
+}
+
+echo json_encode($ret);

@@ -1,30 +1,47 @@
 <?php
-require 'config.php';
-// API: POST { synchid: int, clientId: string, ts_usec: integer }
-// Stores the client's timestamp (microseconds since epoch)
+require_once 'config.php';
 
-$input = json_decode(file_get_contents('php://input'), true);
-if (!$input) {
-    http_response_code(400);
-    echo json_encode(['error' => 'invalid json']);
+$data = json_decode(file_get_contents("php://input"), true);
+
+$synch_id = $data['synch_id'] ?? null;
+$client_id = $data['client_id'] ?? null;
+$ts_usec = $data['ts_usec'] ?? null;
+
+if (!isset($client_id) || !isset($ts_usec) || !isset($synch_id)) {
+    echo json_encode(["error" => "Missing parameters"]);
     exit;
 }
 
-$synchid = intval($input['synchid'] ?? 0);
-$clientId = trim($input['clientId'] ?? '');
-$ts_usec = isset($input['ts_usec']) ? (int)$input['ts_usec'] : null;
-if ($synchid <= 0 || $clientId === '' || !$ts_usec) {
-    http_response_code(400);
-    echo json_encode(['error' => 'missing params']);
-    exit;
-}
+$pdo = pdo_connect();
 
-try {
-    $pdo = pdo_connect();
-    $stmt = $pdo->prepare('INSERT INTO sync_timestamps (synchid, client_id, ts_usec) VALUES (?, ?, ?)');
-    $stmt->execute([$synchid, $clientId, $ts_usec]);
-    echo json_encode(['ok' => true]);
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+
+// Reset flow: Remove previous values
+$stmt = $pdo->prepare(
+    "DELETE FROM sync_offsets 
+    WHERE synch_id = ?");
+$stmt->execute([$synch_id]);
+
+// Update ts_usec
+$stmt = $pdo->prepare(
+    "SELECT id
+    FROM sync_timestamps 
+    WHERE synch_id = ? 
+    AND client_id = ?"
+);
+$stmt->execute([$synch_id, $client_id]);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+if (count($rows) > 0) {
+    $stmt = $pdo->prepare("REPLACE INTO sync_timestamps (id, synch_id, client_id, ts_usec) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$rows[0]['id'], $synch_id, $client_id, $ts_usec]);
+    echo json_encode([
+        "success" => true,
+        "message" => "UPDATED {$synch_id} - {$client_id} - {$ts_usec}"
+    ]);
+} else {
+    $stmt = $pdo->prepare("INSERT INTO sync_timestamps (synch_id, client_id, ts_usec) VALUES (?, ?, ?)");
+    $stmt->execute([$synch_id, $client_id, $ts_usec]);
+    echo json_encode([
+        "success" => true,
+        "message" => "INSERTED {$synch_id} - {$client_id} - {$ts_usec}"
+    ]);
 }
