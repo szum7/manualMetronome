@@ -25,5 +25,6 @@ $stmt->execute([$sync_id, $tempo, $startTimeUsec]);
 echo json_encode([
     "success" => true,
     "tempo" => $tempo,
+    "sync_id" => $sync_id,
     "start_time_usec" => $startTimeUsec
 ]);

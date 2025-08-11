@@ -24,6 +24,7 @@ if ($row) {
     echo json_encode([
         "success" => true,
         "tempo_bpm" => $row["tempo_bpm"],
+        "sync_id" => $sync_id,
         "start_time_usec" => $row["start_time_usec"]
     ]);
 } else {

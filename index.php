@@ -73,11 +73,17 @@
             <!-- Metronome -->
             <div id="metronome" class="tab-content" style="display:none">
                 <div class="card">
-                    <input class="big-input" type="number" id="tempo" value="120"  style="text-align:center;" /><span style="margin-left:8px">bpm</span>
+                    <input class="big-input" type="number" id="tempo" value="120" style="text-align:center;" /><span style="margin-left:8px">bpm</span>
                     <div style="margin-top:8px">
                         <button class="btn" id="setMetronome">Set metronome</button>
                         <button class="btn ghost" id="joinMetronome">Join metronome</button>
                         <button class="btn ghost" id="stopMetronome">Stop</button>
+                    </div>
+                    <div id="metronome-visual" class="metronome-visual">
+                        <div class="beat-circle" id="beat-1"></div>
+                        <div class="beat-circle" id="beat-2"></div>
+                        <div class="beat-circle" id="beat-3"></div>
+                        <div class="beat-circle" id="beat-4"></div>
                     </div>
                 </div>
             </div>
@@ -100,6 +106,8 @@
         const EL_SYNC_ID = document.getElementById('syncId');
         const EL_POST_BTN = document.getElementById('postBtn');
         const EL_GET_BTN = document.getElementById('getBtn');
+        const EL_REF_CLIENT_DISPLAY = document.getElementById("refClientDisplay");
+        const EL_OFFSET_DISPLAY = document.getElementById("offsetDisplay");
 
         // Globals
         const _navTimeOriginUsec = Math.round(performance.timeOrigin * 1000);
@@ -165,6 +173,8 @@
                     log(`Blink start received: ${(res.blink_start_usec_formatted)}`);
 
                     _offsetUsec = res.offset_usec;
+                    EL_OFFSET_DISPLAY.textContent = _offsetUsec;
+                    EL_REF_CLIENT_DISPLAY.textContent = res.ref_client_id;
 
                     scheduleBlink(res.blink_start_usec);
                 } else {
@@ -374,6 +384,8 @@
                 _metronomeBeatIndex = completedBeats + 1; // next beat index
                 nextBeatRefUsec = startTimeUsec + (completedBeats + 1) * periodUsec;
             }
+            
+            let _currentBeat = 1;
 
             // Helper to schedule each beat given its absolute reference time (usec)
             function scheduleBeat(beatRefUsec) {
@@ -405,6 +417,8 @@
                         // Visual: toggle or pulse your circle here if needed (blinkTick may already handle visuals)
                         // e.g., show immediate pulse:
                         // blinkEl.style.opacity = '1'; set timeout to fade... (your blinkTick may manage this)
+                        updateMetronomeVisual(_currentBeat);
+                        _currentBeat = _currentBeat === 4 ? 1 : _currentBeat + 1;
 
                         // Audio
                         if (!_isMuted) {
@@ -439,7 +453,22 @@
             }
         }
 
+        function updateMetronomeVisual(currentBeat) {
+            for (let i = 1; i <= 4; i++) {
+                const circle = document.getElementById(`beat-${i}`);
+                if (!circle) continue;
 
+                circle.classList.remove('active', 'first-beat');
+
+                if (i === currentBeat) {
+                    if (i === 1) {
+                        circle.classList.add('active', 'first-beat'); // different style for beat 1
+                    } else {
+                        circle.classList.add('active');
+                    }
+                }
+            }
+        }
 
 
 
@@ -448,6 +477,11 @@
         document.getElementById("setMetronome").addEventListener("click", async () => {
 
             stopMetronomeLocal();
+
+            if (_offsetUsec == null) {
+                log("Need to sync first!");
+                return;
+            }
 
             let tempo = parseInt(document.getElementById("tempo").value);
             let syncId = getSyncId();
@@ -476,6 +510,11 @@
         document.getElementById("joinMetronome").addEventListener("click", async () => {
 
             stopMetronomeLocal();
+
+            if (_offsetUsec == null) {
+                log("Need to sync first!");
+                return;
+            }
 
             let syncId = getSyncId();
             if (!syncId) {
