@@ -18,3 +18,10 @@ CREATE TABLE IF NOT EXISTS sync_offsets (
   blink_start_usec BIGINT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE metronome (
+    sync_id INT NOT NULL,
+    tempo_bpm INT NOT NULL,
+    start_time_usec BIGINT NOT NULL,
+    PRIMARY KEY (sync_id)
+);

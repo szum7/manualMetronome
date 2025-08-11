@@ -2,7 +2,7 @@
 // get_sync_result.php
 require 'config.php';
 
-$BLINK_SCHEDULE_OFFSET = 10;
+$BLINK_SCHEDULE_OFFSET = 100;
 
 $data = json_decode(file_get_contents("php://input"), true);
 

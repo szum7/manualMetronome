@@ -204,7 +204,7 @@
                         EL_BLINK_CIRCLE.style.opacity = on ? '1' : '0';
                         _lastBlinkState = on;
                         if (on === true && _isMuted === false) {
-                            //playBeep();
+                            playBeep();
                         }
                     }
                 }
@@ -277,7 +277,7 @@
 
 
         let _metronomeIntervalId = null;
-        //let _metronomeRunning = false;
+        let _metronomeRunning = false;
 
         // Short beep for normal ticks
         function playMetronomeBeep(frequency = 880) {
@@ -293,138 +293,42 @@
             osc.stop(_audioCtx.currentTime + 0.05);
         }
 
-
-
-
-
-        let _metronomeTimerHandle = null;
-        let _metronomeRunning = false;
-        let _metronomeBeatIndex = 0; // counts beats since the metronome start (0 => first beat)
-        let METRONOME_LEAD_MS = 20; // wake slightly earlier for rAF alignment
-        //let isMuted = false; // if true, playBeep won't sound
-
-        function stopMetronomeLocal() {
-            _metronomeRunning = false;
-            _metronomeBeatIndex = 0;
-            if (_metronomeTimerHandle && _metronomeTimerHandle.clear) {
-                _metronomeTimerHandle.clear();
-                _metronomeTimerHandle = null;
-            }
-            // optionally update UI here
-        }
-        
-        function startMetronome(tempoBpm, startTimeUsec) {
+        // Start metronome locally
+        function startMetronome(tempo, startTimeUsec) {
             if (_metronomeRunning) return;
-            if (!tempoBpm || tempoBpm <= 0) {
-                console.warn('Invalid tempo', tempoBpm);
-                return;
-            }
-
-            // require offset to be known
-            if (typeof _offsetUsec === 'undefined' || _offsetUsec === null) {
-                // race: offset not ready yet — retry shortly
-                console.log('offset_usec not ready yet; retrying startMetronome in 100ms');
-                setTimeout(() => startMetronome(tempoBpm, startTimeUsec), 100);
-                return;
-            }
-
             _metronomeRunning = true;
-            _metronomeBeatIndex = 0;
 
-            // microseconds per beat
-            const periodUsec = Math.round(60000000 / tempoBpm); // 60,000,000 usec per minute / bpm
+            const intervalMs = (60 / tempo) * 1000;
+            const adjustedStartMs = (startTimeUsec / 1000) + _offsetUsec; // offset is from sync
 
-            // compute reference "now" (reference clock aligned to the chosen ref client)
-            // ref_now_usec = client's adjusted clock = local client epoch (usec) - offset_usec
-            const refNowUsec = clientNowUsec() - _offsetUsec;
+            let nextTick = adjustedStartMs;
 
-            // determine the next beat's absolute reference time (usec)
-            let nextBeatRefUsec;
-            if (refNowUsec < startTimeUsec) {
-                // Start is in the future — the first beat is at startTimeUsec
-                _metronomeBeatIndex = 0; // first beat to play will be index 0
-                nextBeatRefUsec = startTimeUsec;
-            } else {
-                // Start already passed — compute which beat is next
-                const elapsedSinceStart = refNowUsec - startTimeUsec;
-                const completedBeats = Math.floor(elapsedSinceStart / periodUsec);
-                _metronomeBeatIndex = completedBeats + 1; // next beat index
-                nextBeatRefUsec = startTimeUsec + (completedBeats + 1) * periodUsec;
-            }
+            // Align first tick with the future start time
+            const delayToStart = adjustedStartMs - performance.now();
+            safeSetTimeout(tick, 10);
 
-            // Helper to schedule each beat given its absolute reference time (usec)
-            function scheduleBeat(beatRefUsec) {
-                if (!_metronomeRunning) return;
+            let beatCount = 0;
 
-                const refNow = clientNowUsec() - _offsetUsec;
-                let deltaUsec = beatRefUsec - refNow; // microseconds until this beat on *reference* clock
-                if (deltaUsec < 0) deltaUsec = 0;
-                const deltaMs = Math.ceil(deltaUsec / 1000);
-
-                // wake slightly earlier (lead) so requestAnimationFrame and audio kick in on time
-                const wakeMs = Math.max(0, deltaMs - METRONOME_LEAD_MS);
-
-                // clear previous timer if any
-                if (_metronomeTimerHandle && _metronomeTimerHandle.clear) {
-                    _metronomeTimerHandle.clear();
-                    _metronomeTimerHandle = null;
+            function tick() {
+                beatCount++;
+                if (beatCount === 1 || (beatCount - 1) % 4 === 0) {
+                    playMetronomeBeep(1760); // "one" beat
+                } else {
+                    playMetronomeBeep(880); // other beats
                 }
 
-                // schedule a wake
-                _metronomeTimerHandle = safeSetTimeout(() => {
-                    // on wake, align to rAF and play the beat exactly once
-                    requestAnimationFrame(() => {
-                        if (!_metronomeRunning) return;
-
-                        // Determine if this is the downbeat (1 of 4)
-                        const isDownbeat = (_metronomeBeatIndex % 4) === 0;
-
-                        // Visual: toggle or pulse your circle here if needed (blinkTick may already handle visuals)
-                        // e.g., show immediate pulse:
-                        // blinkEl.style.opacity = '1'; set timeout to fade... (your blinkTick may manage this)
-
-                        // Audio
-                        if (!_isMuted) {
-                            // accent the first beat
-                            if (isDownbeat) playBeep(parseFloat(document.getElementById('beepFrequency')?.value || 1760));
-                            else playBeep(parseFloat(document.getElementById('beepFrequency')?.value || 880));
-                        }
-
-                        // Advance beat index and schedule next beat using exact reference time
-                        _metronomeBeatIndex++;
-                        const nextRef = beatRefUsec + periodUsec;
-                        scheduleBeat(nextRef);
-                    });
-                }, wakeMs);
-            }
-
-            // Start scheduling the first beat
-            scheduleBeat(nextBeatRefUsec);
-        }
-
-        // ---------- Example join logic (client side) ----------
-        async function joinMetronomeForSyncId(syncId) {
-            try {
-                const res = await fetch(`get_metronome.php?sync_id=${encodeURIComponent(syncId)}`);
-                if (!res.ok) throw new Error('No metronome set');
-                const data = await res.json();
-                // data should contain tempo_bpm and start_time_usec (microseconds)
-                startMetronome(parseInt(data.tempo_bpm, 10), Number(data.start_time_usec));
-                // update UI...
-            } catch (err) {
-                console.error('Join metronome failed:', err);
+                nextTick += intervalMs;
+                safeSetTimeout(tick, nextTick - performance.now());
             }
         }
-
-
-
-
-
-
+        
+        function stopMetronome() {
+            _metronomeRunning = false;
+            _metronomeIntervalId = null;
+            document.getElementById("metronomeStatus").textContent = "Stopped.";
+        }
 
         document.getElementById("setMetronome").addEventListener("click", async () => {
-            
-            stopMetronomeLocal();
 
             let tempo = parseInt(document.getElementById("tempo").value);
             let syncId = getSyncId();
@@ -438,7 +342,7 @@
                 res = await postJson("set_metronome.php", {
                     sync_id: syncId,
                     tempo: tempo
-                });
+                });                
             } catch (e) {
                 log(`Network error: ${e.message}`);
             }
@@ -453,8 +357,6 @@
 
         document.getElementById("joinMetronome").addEventListener("click", async () => {
 
-            stopMetronomeLocal();
-
             let syncId = getSyncId();
             if (!syncId) {
                 return;
@@ -464,16 +366,14 @@
             try {
                 res = await postJson("get_metronome.php", {
                     sync_id: syncId
-                });
+                });                
             } catch (e) {
                 log(`Network error: ${e.message}`);
             }
 
             if (res.success === true) {
 
-                //startMetronome(res.tempo_bpm, res.start_time_usec);
-                startMetronome(parseInt(res.tempo_bpm, 10), Number(res.start_time_usec));
-
+                startMetronome(res.tempo_bpm, res.start_time_usec);
                 document.getElementById("metronomeStatus").textContent =
                     `Joined metronome at ${res.tempo_bpm} BPM, starts at ${formatUsec(res.start_time_usec)}`;
 
@@ -482,7 +382,7 @@
             }
         });
 
-        document.getElementById("stopMetronome").addEventListener("click", stopMetronomeLocal);
+        document.getElementById("stopMetronome").addEventListener("click", stopMetronome);
     </script>
 </body>
 
