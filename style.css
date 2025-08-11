@@ -6,6 +6,7 @@
     --card: #151b24;
     --muted: #8b95a6;
     --text: #e5e7eb;
+    --mxpw: 700px;
 }
 
 html,
@@ -18,10 +19,15 @@ body {
     color: var(--text);
 }
 
-.app {
+.app-x {
     display: flex;
     flex-direction: column;
-    height: 100vh
+    height: 100vh;
+}
+
+.page-width {
+    max-width: var(--mxpw);
+    margin: auto;
 }
 
 /* Top bar */
@@ -66,7 +72,7 @@ body {
 .tabs {
     display: flex;
     background: var(--card);
-    border-bottom: 1px solid #1f2937
+    border-bottom: 1px solid #1f2937;
 }
 
 .tab-btn {

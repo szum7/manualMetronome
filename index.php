@@ -40,53 +40,57 @@
             <button class="tab-btn" data-tab="metronome">Metronome</button>
         </div>
 
-        <!-- Content -->
-        <div class="content">
-            <!-- Setup -->
-            <div id="setup" class="tab-content active">
-                <div class="card">
-                    <div>
-                        <button class="btn" id="postBtn">Send Sync</button>
-                    </div>
-                    <div class="clock-column">
-                        <div class="clock-line">
-                            <div class="clock-label">Unadjusted:</div>
-                            <div class="clock-display" id="unadj">--:--:--.------</div>
+        <div class="page-width">
+
+            <!-- Content -->
+            <div class="content">
+                <!-- Setup -->
+                <div id="setup" class="tab-content active">
+                    <div class="card">
+                        <div>
+                            <button class="btn" id="postBtn">Send Sync</button>
                         </div>
-                        <div class="clock-line">
-                            <div class="clock-label">Adjusted:</div>
-                            <div class="clock-display" id="adj">--:--:--.------</div>
+                        <div class="clock-column">
+                            <div class="clock-line">
+                                <div class="clock-label">Unadjusted:</div>
+                                <div class="clock-display" id="unadj">--:--:--.------</div>
+                            </div>
+                            <div class="clock-line">
+                                <div class="clock-label">Adjusted:</div>
+                                <div class="clock-display" id="adj">--:--:--.------</div>
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn secondary" id="getBtn">Get</button>
+                        </div>
+                        <div class="circle-wrap">
+                            <div class="circle" id="circle">
+                                <div class="pulse" id="blink"></div>
+                                <!-- <div class="mute-ind" id="muteInd">🔇</div> -->
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <button class="btn secondary" id="getBtn">Get</button>
-                    </div>
-                    <div class="circle-wrap">
-                        <div class="circle" id="circle">
-                            <div class="pulse" id="blink"></div>
-                            <!-- <div class="mute-ind" id="muteInd">🔇</div> -->
+                </div>
+
+                <!-- Metronome -->
+                <div id="metronome" class="tab-content" style="display:none">
+                    <div class="card">
+                        <input class="big-input" type="number" id="tempo" value="120" style="text-align:center;" /><span style="margin-left:8px">bpm</span>
+                        <div style="margin-top:8px">
+                            <button class="btn" id="setMetronome">Set metronome</button>
+                            <button class="btn secondary" id="joinMetronome">Join metronome</button>
+                            <button class="btn ghost" id="stopMetronome">Stop</button>
+                        </div>
+                        <div id="metronome-visual" class="metronome-visual">
+                            <div class="beat-circle" id="beat-1"></div>
+                            <div class="beat-circle" id="beat-2"></div>
+                            <div class="beat-circle" id="beat-3"></div>
+                            <div class="beat-circle" id="beat-4"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Metronome -->
-            <div id="metronome" class="tab-content" style="display:none">
-                <div class="card">
-                    <input class="big-input" type="number" id="tempo" value="120" style="text-align:center;" /><span style="margin-left:8px">bpm</span>
-                    <div style="margin-top:8px">
-                        <button class="btn" id="setMetronome">Set metronome</button>
-                        <button class="btn ghost" id="joinMetronome">Join metronome</button>
-                        <button class="btn ghost" id="stopMetronome">Stop</button>
-                    </div>
-                    <div id="metronome-visual" class="metronome-visual">
-                        <div class="beat-circle" id="beat-1"></div>
-                        <div class="beat-circle" id="beat-2"></div>
-                        <div class="beat-circle" id="beat-3"></div>
-                        <div class="beat-circle" id="beat-4"></div>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Bottom Log -->
@@ -384,7 +388,7 @@
                 _metronomeBeatIndex = completedBeats + 1; // next beat index
                 nextBeatRefUsec = startTimeUsec + (completedBeats + 1) * periodUsec;
             }
-            
+
             let _currentBeat = 1;
 
             // Helper to schedule each beat given its absolute reference time (usec)
