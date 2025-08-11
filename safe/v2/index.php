@@ -10,81 +10,62 @@
 
 <body>
     <div class="app">
+        <h1>Clock Sync</h1>
 
-        <!-- Top Bar -->
-        <div class="top-bar">
-            <div class="top-pill">
-                Client: <span id="clientId">...</span>
+        <div class="field">
+            <div class="row">
+                <div class="big">Client ID</div>
+                <div id="clientId"></div>
             </div>
-            <div class="top-pill">
-                Sync ID: <input id="syncId" placeholder="e.g. 1" value="123" />
+            <div class="row" style="margin-top:8px">
+                <div class="muted">Sync ID</div>
+                <input id="syncId" placeholder="e.g. 1" value="123" />
             </div>
-            <div class="top-pill">Beep:
+            <div class="row" style="margin-top:8px">
+                <div class="muted">Beep frequency</div>
                 <select id="beepFrequency">
                     <option value="220">Low</option>
                     <option value="500" selected>Medium</option>
                     <option value="1050">High</option>
                 </select>
             </div>
-            <div class="top-pill">
-                Offset: <span id="offsetDisplay">unset</span>
+        </div>
+
+        <div class="muted">Press at the same time.</div>
+        <button id="postBtn" class="btn secondary">Send Sync</button>
+
+        <div class="clock">
+            <div class="line">
+                <div class="muted">Unadjusted</div>
+                <div id="unadj" class="big">--:--:--.------</div>
             </div>
-            <div class="top-pill">
-                Ref: <span id="refClientDisplay">unset</span>
+            <div class="line">
+                <div class="muted">Adjusted</div>
+                <div id="adj" class="big">--:--:--.------</div>
             </div>
         </div>
 
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab-btn active" data-tab="setup">Setup</button>
-            <button class="tab-btn" data-tab="metronome">Metronome</button>
+        <div class="muted">Press within a 5 sec time window.</div>
+        <button id="getBtn" class="btn primary">Get</button>
+
+        <div class="circle" aria-hidden="true">
+            <div id="blink" class="blink"></div>
         </div>
 
-        <!-- Content -->
-        <div class="content">
-            <!-- Setup -->
-            <div id="setup" class="tab-content active">
-                <div class="card">
-                    <div>
-                        <button class="btn" id="postBtn">Send Sync</button>
-                    </div>
-                    <div class="clock-column">
-                        <div class="clock-line">
-                            <div class="clock-label">Unadjusted:</div>
-                            <div class="clock-display" id="unadj">--:--:--.------</div>
-                        </div>
-                        <div class="clock-line">
-                            <div class="clock-label">Adjusted:</div>
-                            <div class="clock-display" id="adj">--:--:--.------</div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="btn secondary" id="getBtn">Get</button>
-                    </div>
-                    <div class="circle-wrap">
-                        <div class="circle" id="circle">
-                            <div class="pulse" id="blink"></div>
-                            <!-- <div class="mute-ind" id="muteInd">🔇</div> -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Metronome -->
-            <div id="metronome" class="tab-content" style="display:none">
-                <div class="card">
-                    <input class="big-input" type="number" id="tempo" value="120"  style="text-align:center;" /><span style="margin-left:8px">bpm</span>
-                    <div style="margin-top:8px">
-                        <button class="btn" id="setMetronome">Set metronome</button>
-                        <button class="btn ghost" id="joinMetronome">Join metronome</button>
-                        <button class="btn ghost" id="stopMetronome">Stop</button>
-                    </div>
-                </div>
-            </div>
+        <div style="margin: 10px 0;">
+            <label for="tempo">Tempo (BPM):</label>
+            <input type="number" id="tempo" min="20" max="300" value="120" style="width:60px;">
+            <button id="setMetronome">Set metronome</button>
+            <button id="joinMetronome">Join metronome</button>
+            <button id="stopMetronome">Stop</button>
         </div>
 
-        <!-- Bottom Log -->
-        <pre id="log" class="bottom-log"></pre>
+        <div id="metronomeStatus"></div>
+
+        <div class="field">
+            <div class="muted">Server log</div>
+            <pre id="log"></pre>
+        </div>
     </div>
 
     <script src="scripts.js"></script>
@@ -112,7 +93,6 @@
         let _audioCtx;
 
         // RUN
-        log("Page loaded.");
         _clientId = generateClientId();
         requestAnimationFrame(rafTick);
         requestAnimationFrame(blinkTick);
@@ -185,9 +165,6 @@
         }
 
         function rafTick() {
-            if (!EL_UNADJ_TIME) {
-                return;
-            }
             const now_usecs = clientNowUsec();
             EL_UNADJ_TIME.textContent = formatUsec(now_usecs);
             if (_offsetUsec !== null) {
@@ -335,7 +312,7 @@
             }
             // optionally update UI here
         }
-
+        
         function startMetronome(tempoBpm, startTimeUsec) {
             if (_metronomeRunning) return;
             if (!tempoBpm || tempoBpm <= 0) {
@@ -446,7 +423,7 @@
 
 
         document.getElementById("setMetronome").addEventListener("click", async () => {
-
+            
             stopMetronomeLocal();
 
             let tempo = parseInt(document.getElementById("tempo").value);
@@ -467,7 +444,8 @@
             }
 
             if (res.success === true) {
-                log(`Set to ${res.tempo} bpm in sync id=${res.sync_id}`);
+                document.getElementById("metronomeStatus").textContent =
+                    `Metronome set at ${res.tempo} BPM, starts at ${formatUsec(res.start_time_usec)}`;
             } else {
                 log(`Error: ${JSON.stringify(res)}`);
             }
@@ -496,7 +474,8 @@
                 //startMetronome(res.tempo_bpm, res.start_time_usec);
                 startMetronome(parseInt(res.tempo_bpm, 10), Number(res.start_time_usec));
 
-                log(`Joined sync id=${res.sync_id} at ${res.tempo_bpm} bpm`);
+                document.getElementById("metronomeStatus").textContent =
+                    `Joined metronome at ${res.tempo_bpm} BPM, starts at ${formatUsec(res.start_time_usec)}`;
 
             } else {
                 log(`Error: ${JSON.stringify(res)}`);

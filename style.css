@@ -1,169 +1,227 @@
 :root {
-    --blue: #0b84ff;
-    --green: #3ca00e;
-    --bg: #0f1720;
-    --bglayer: #1b2c3f;
-    --card: #fff;
-    color: #e6eef8;
+    --primary: #4dabff;
+    --btn1: #156ebb;
+    --btn2: #2c960c;
+    --bg: #0b0f15;
+    --card: #151b24;
+    --muted: #8b95a6;
+    --text: #e5e7eb;
 }
 
 html,
 body {
-    height: 100%;
     margin: 0;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-    color: var(--card);
-}
-
-body {
-    background: linear-gradient(180deg, #071029 0%, #071122 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
+    padding: 0;
+    height: 100%;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
 }
 
 .app {
-    width: 100%;
-    max-width: 540px;
-    background: rgba(255, 255, 255, 0.03);
-    padding: 18px;
-    border-radius: 16px;
-    box-shadow: 0 8px 30px rgba(2, 6, 23, 0.6);
+    display: flex;
+    flex-direction: column;
+    height: 100vh
 }
 
-h1 {
-    font-size: 20px;
-    margin: 0 0 8px;
-}
-
-.row {
+/* Top bar */
+.top-bar {
+    position: sticky;
+    top: 0;
+    background: var(--card);
     display: flex;
     gap: 8px;
     align-items: center;
+    flex-wrap: wrap;
+    padding: 8px;
+    border-bottom: 1px solid #1f2937;
+    z-index: 10;
 }
 
-.big {
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.muted {
-    opacity: 0.8;
-    font-size: 13px;
-}
-
-.clock {
+.top-pill {
+    background: #1f2937;
+    padding: 6px 8px;
+    border-radius: 8px;
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-top: 12px;
-    margin-bottom: 18px;
-    font-family: monospace;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum";
-}
-
-.clock .line {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 6px;
+    font-size: 14px;
 }
 
-.btn {
-    display: inline-block;
-    color: white;
+.top-pill input,
+.top-pill select {
+    border: 0;
+    background: var(--card);
+    ;
+    font-size: 14px;
+    outline: none;
+    color: var(--text);
+}
+
+/* Tabs */
+.tabs {
+    display: flex;
+    background: var(--card);
+    border-bottom: 1px solid #1f2937
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    border: 0;
+    background: transparent;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--muted);
+}
+
+.tab-btn.active {
+    border-bottom: 3px solid var(--primary);
+    color: var(--primary);
+}
+
+/* Content */
+.content {
+    flex: 1;
+    overflow: auto;
     padding: 12px;
-    border-radius: 12px;
-    text-align: center;
-    font-weight: 700;
-    border: none;
-    width: 100%;
-    margin-top: 8px;
-    margin-bottom: 10px;
+    padding-bottom: 120px;
 }
 
-.btn.primary {
-    background: var(--green);
+.card {
+    background: var(--card);
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+/* Buttons */
+.btn {
+    background: var(--btn1);
+    color: #333;
+    padding: 15px 0;
+    border-radius: 6px;
+    border: 0;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+    margin-bottom: 8px;
+    color: var(--text);
 }
 
 .btn.secondary {
-    background: var(--blue);
+    background: var(--btn2);
+    border: 1px solid #374151;
+    color: var(--text);
 }
 
-.btn:active {
-    transform: translateY(1px);
-}
-
-.circle {
-    width: 90px;
-    height: 90px;
-    border-radius: 999px;
-    background: var(--bglayer);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 12px auto;
-}
-
-.blink {
-    width: 56px;
-    height: 56px;
-    border-radius: 999px;
-    background: var(--blue);
-    opacity: 0;
-    cursor: pointer;
-    /*transition: opacity 0.15s linear;*/
-}
-
-.field {
-    background: var(--bglayer);
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 5px;
-}
-
-small {
-    font-size: 12px;
-    color: #a8b3c6;
-}
-
-#syncId {
-    margin-left: auto;
-    width: 120px;
-    padding: 8px;
-    border-radius: 8px;
+.btn.ghost {
     background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    color: var(--card);
+    border: 1px solid #374151;
+    color: var(--text);
+}
+
+/* Clocks */
+.clock-column {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+.clock-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.clock-label {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.clock-display {
+    font-family: ui-monospace, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    padding: 4px 6px;
+    border-radius: 4px;
+    min-width: 140px;
     text-align: right;
 }
 
-#log {
-    white-space: pre-wrap;
-    max-height: 120px;
+/* Circle */
+.circle-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px
+}
+
+.circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(77, 171, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+}
+
+.pulse {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--primary);
+    opacity: 0;
+}
+
+.mute-ind {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 14px
+}
+
+/* Bottom log */
+.bottom-log {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 100px;
+    background: #000;
+    color: #89ffb0;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    padding: 8px;
     overflow: auto;
-    margin-top: 6px;
+    z-index: 10;
 }
 
-#clientId {
-    margin-left:auto; 
-    font-weight:700;
+/* My own styles */
+.big-input {
+    background: #111827;
+    color: var(--text);
+    border: 1px solid #374151;
+    padding: 15px 8px;
+    border-radius: 4px;
 }
 
-#beepFrequency {
-    padding: 6px;
-    margin-left: auto;
+.lr-column {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
-
-@media (max-width:420px) {
-    .circle {
-        width: 78px;
-        height: 78px;
-    }
-
-    .blink {
-        width: 48px;
-        height: 48px;
-    }
+.lr-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
