@@ -26,6 +26,14 @@
                     <option value="1050">High</option>
                 </select>
             </div>
+            <div class="top-pill">Type:
+                <select id="beepType">
+                    <option value="sine" selected>sine</option>
+                    <option value="square">square</option>
+                    <option value="triangle">triangle</option>
+                    <option value="sawtooth">sawtooth</option>
+                </select>
+            </div>
             <div class="top-pill">
                 Offset: <span id="offsetDisplay">unset</span>
             </div>
@@ -48,7 +56,7 @@
                 <div id="setup" class="tab-content active">
                     <div class="card">
                         <div>
-                            <button class="btn" id="postBtn">Send Sync</button>
+                            <button class="btn" id="postBtn">Send my Clock</button>
                         </div>
                         <div class="clock-column">
                             <div class="clock-line">
@@ -61,7 +69,7 @@
                             </div>
                         </div>
                         <div>
-                            <button class="btn secondary" id="getBtn">Get</button>
+                            <button class="btn secondary" id="getBtn">Get Offset</button>
                         </div>
                         <div class="circle-wrap">
                             <div class="circle" id="circle">
@@ -75,10 +83,15 @@
                 <!-- Metronome -->
                 <div id="metronome" class="tab-content" style="display:none">
                     <div class="card">
-                        <input class="big-input" type="number" id="tempo" value="120" style="text-align:center;" /><span style="margin-left:8px">bpm</span>
+                        <div class="tempo-row">
+                            <button class="btn fix" id="setMetronome">Set</button>
+                            <div class="tempo-input-wrap">
+                                <input type="text" id="tempo" value="120" />
+                                <span class="tempo-label">bpm</span>
+                            </div>
+                        </div>
                         <div style="margin-top:8px">
-                            <button class="btn" id="setMetronome">Set metronome</button>
-                            <button class="btn secondary" id="joinMetronome">Join metronome</button>
+                            <button class="btn secondary" id="joinMetronome">Join</button>
                             <button class="btn ghost" id="stopMetronome">Stop</button>
                         </div>
                         <div id="metronome-visual" class="metronome-visual">
@@ -87,7 +100,28 @@
                             <div class="beat-circle" id="beat-3"></div>
                             <div class="beat-circle" id="beat-4"></div>
                         </div>
+                        <div class="mt-bpm"><span id="mtBpm">0</span> bpm</div>
                     </div>
+                </div>
+            </div>
+
+            <div class="instructions">
+                <p class="title"><b>Instructions</b></p>
+                <ol>
+                    <li>Set a <strong>sync id</strong> on the top. This will be your room key.</li>
+                    <li>Press 'Send my Clock' <u>at the same time</u> with all the clients.</li>
+                    <li>Press 'Get Offset'.</li>
+                    <li>You should now have a synchronized clock with all the other clients.</li>
+                    <li>You can now use the Metronome tab.</li>
+                </ol>
+                <ul>
+                    <li>On <b>page refresh</b> you may only need to press 'Get Offset' again.</li>
+                    <li>'Set' will set a tempo for the room.</li>
+                    <li>'Join' will start your metronome synched with all clients in the room.</li>
+                    <li>'Stop' will stop your metronome. (Not others'.)</li>
+                </ul>
+                <div>
+                    <button class="btn" id="deleteBtn">CLEAR DATABASE</button>
                 </div>
             </div>
 
@@ -112,6 +146,8 @@
         const EL_GET_BTN = document.getElementById('getBtn');
         const EL_REF_CLIENT_DISPLAY = document.getElementById("refClientDisplay");
         const EL_OFFSET_DISPLAY = document.getElementById("offsetDisplay");
+        const EL_BPM_DISPLAY = document.getElementById("mtBpm");
+        const EL_DELETE_BTN = document.getElementById("deleteBtn");
 
         // Globals
         const _navTimeOriginUsec = Math.round(performance.timeOrigin * 1000);
@@ -121,10 +157,11 @@
         const BEAT_PERIOD_USEC = 1500000;
         let _lastBlinkState = false;
         let _isMuted = false;
+        let _isTestMuted = false;
         let _audioCtx;
 
         // RUN
-        log("Page loaded.");
+        log("START.");
         _clientId = generateClientId();
         requestAnimationFrame(rafTick);
         requestAnimationFrame(blinkTick);
@@ -149,8 +186,8 @@
                 });
                 if (res.success === true) {
 
-                    log(`Resetted all syncId=${syncId} rows.`);
-                    log(`Timestamp saved: ${syncId}, ${_clientId}, ${formatUsec(tsUsec)}`);
+                    log(`SETUP: Resetted all syncId=${syncId} rows.`);
+                    log(`SETUP: Timestamp saved: ${syncId}, ${_clientId}, ${formatUsec(tsUsec)}`);
 
                 } else {
                     log(`Error: ${JSON.stringify(res)}`);
@@ -174,11 +211,12 @@
                 });
                 if (res.success === true) {
 
-                    log(`Blink start received: ${(res.blink_start_usec_formatted)}`);
+                    log(`SETUP: Blink start received: ${(res.blink_start_usec_formatted)}`);
 
                     _offsetUsec = res.offset_usec;
                     EL_OFFSET_DISPLAY.textContent = _offsetUsec;
                     EL_REF_CLIENT_DISPLAY.textContent = res.ref_client_id;
+                    _isTestMuted = false;
 
                     scheduleBlink(res.blink_start_usec);
                 } else {
@@ -187,6 +225,36 @@
             } catch (e) {
                 log('Network error: ' + e.message);
             }
+        });
+
+        EL_DELETE_BTN.addEventListener('click', async () => {
+
+            try {
+                const res = await postJson("delete_data.php", {});
+                if (res.success === true) {
+
+                    log(`DATABASE CLEARED.`);
+
+                } else {
+                    log(`Error: ${JSON.stringify(res)}`);
+                }
+            } catch (e) {
+                log('Network error: ' + e.message);
+            }
+        });
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+
+                // Resets
+                _isTestMuted = true;
+                stopMetronomeLocal();
+
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                document.getElementById(btn.dataset.tab).style.display = 'block';
+            });
         });
 
         function getSyncId() {
@@ -214,12 +282,12 @@
         }
 
         EL_BLINK_CIRCLE.addEventListener('click', () => {
-            _isMuted = !_isMuted;
+            _isTestMuted = !_isTestMuted;
             updateMuteVisual();
         });
 
         function updateMuteVisual() {
-            if (_isMuted) {
+            if (_isTestMuted) {
                 EL_BLINK_CIRCLE.style.background = '#fff';
                 EL_BLINK_CIRCLE.title = "Muted (click to unmute)";
             } else {
@@ -238,11 +306,13 @@
                     const duty = 0.18;
                     const on = beatProgress < duty;
                     if (on !== _lastBlinkState) {
-                        EL_BLINK_CIRCLE.style.opacity = on ? '1' : '0';
-                        _lastBlinkState = on;
-                        if (on === true && _isMuted === false) {
-                            //playBeep();
+                        if (_isTestMuted === false) {
+                            EL_BLINK_CIRCLE.style.opacity = on ? '1' : '0';
+                            if (on === true) {
+                                playBeep();
+                            }
                         }
+                        _lastBlinkState = on;
                     }
                 }
             }
@@ -292,16 +362,21 @@
         function initAudio() {
             _audioCtx = new(window.AudioContext || window.webkitAudioContext)();
         }
+        
+        function getBeepType() {
+            return document.getElementById("beepType").value;
+        }
 
-        function playBeep() {
+        function playBeep(frequency) {
             if (!_audioCtx) initAudio();
 
-            const frequency = parseFloat(document.getElementById("beepFrequency").value);
+            frequency = (typeof frequency === 'undefined') ? parseFloat(document.getElementById("beepFrequency").value) : frequency;
+            //const frequency = parseFloat(document.getElementById("beepFrequency").value);
 
             const osc = _audioCtx.createOscillator();
             const gain = _audioCtx.createGain();
 
-            osc.type = "sine"; // "sine", "square", "triangle", "sawtooth"
+            osc.type = getBeepType(); // "sine", "square", "triangle", "sawtooth"
             osc.frequency.value = frequency; // frequency from dropdown
             gain.gain.value = 0.1;
 
@@ -311,34 +386,11 @@
             osc.start();
             osc.stop(_audioCtx.currentTime + 0.1); // 0.1s beep
         }
-
-
-        let _metronomeIntervalId = null;
-        //let _metronomeRunning = false;
-
-        // Short beep for normal ticks
-        function playMetronomeBeep(frequency = 880) {
-            if (!_audioCtx) initAudio();
-            const osc = _audioCtx.createOscillator();
-            const gain = _audioCtx.createGain();
-            osc.type = "square";
-            osc.frequency.value = frequency;
-            gain.gain.value = 0.1;
-            osc.connect(gain);
-            gain.connect(_audioCtx.destination);
-            osc.start();
-            osc.stop(_audioCtx.currentTime + 0.05);
-        }
-
-
-
-
-
+        
         let _metronomeTimerHandle = null;
         let _metronomeRunning = false;
         let _metronomeBeatIndex = 0; // counts beats since the metronome start (0 => first beat)
         let METRONOME_LEAD_MS = 20; // wake slightly earlier for rAF alignment
-        //let isMuted = false; // if true, playBeep won't sound
 
         function stopMetronomeLocal() {
             _metronomeRunning = false;
@@ -415,9 +467,6 @@
                     requestAnimationFrame(() => {
                         if (!_metronomeRunning) return;
 
-                        // Determine if this is the downbeat (1 of 4)
-                        const isDownbeat = (_metronomeBeatIndex % 4) === 0;
-
                         // Visual: toggle or pulse your circle here if needed (blinkTick may already handle visuals)
                         // e.g., show immediate pulse:
                         // blinkEl.style.opacity = '1'; set timeout to fade... (your blinkTick may manage this)
@@ -427,8 +476,12 @@
                         // Audio
                         if (!_isMuted) {
                             // accent the first beat
-                            if (isDownbeat) playBeep(parseFloat(document.getElementById('beepFrequency')?.value || 1760));
-                            else playBeep(parseFloat(document.getElementById('beepFrequency')?.value || 880));
+                            let freq = document.getElementById('beepFrequency')?.value ?? 880;
+                            if (_currentBeat === 2) {
+                                playBeep(parseFloat(freq) + 400);
+                            } else {
+                                playBeep(parseFloat(freq));
+                            }
                         }
 
                         // Advance beat index and schedule next beat using exact reference time
@@ -505,7 +558,7 @@
             }
 
             if (res.success === true) {
-                log(`Set to ${res.tempo} bpm in sync id=${res.sync_id}`);
+                log(`Set Sync ID=${res.sync_id} => ${res.tempo} bpm`);
             } else {
                 log(`Error: ${JSON.stringify(res)}`);
             }
@@ -539,14 +592,19 @@
                 //startMetronome(res.tempo_bpm, res.start_time_usec);
                 startMetronome(parseInt(res.tempo_bpm, 10), Number(res.start_time_usec));
 
-                log(`Joined sync id=${res.sync_id} at ${res.tempo_bpm} bpm`);
+                EL_BPM_DISPLAY.textContent = res.tempo_bpm;
+
+                log(`Joined Sync ID=${res.sync_id}, ${res.tempo_bpm} bpm`);
 
             } else {
                 log(`Error: ${JSON.stringify(res)}`);
             }
         });
 
-        document.getElementById("stopMetronome").addEventListener("click", stopMetronomeLocal);
+        document.getElementById("stopMetronome").addEventListener("click", () => {
+            stopMetronomeLocal();
+            log("Stopped metronome.")
+        });
     </script>
 </body>
 

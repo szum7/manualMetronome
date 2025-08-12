@@ -90,12 +90,21 @@ body {
     color: var(--primary);
 }
 
+.instructions {
+    padding: 0 20px;
+    padding-bottom: 150px;
+    opacity: 0.85;
+}
+
+.instructions li {
+    padding: 5px 0;
+}
+
 /* Content */
 .content {
     flex: 1;
     overflow: auto;
     padding: 12px;
-    padding-bottom: 120px;
 }
 
 .card {
@@ -119,6 +128,10 @@ body {
     width: 100%;
     margin-bottom: 8px;
     color: var(--text);
+}
+
+.btn.fix {
+    padding: 16px 0;
 }
 
 .btn.secondary {
@@ -199,13 +212,59 @@ body {
     font-size: 14px
 }
 
+.tempo-row {
+    display: flex;
+    align-items: flex-start;
+    /* aligns button and input at the top */
+    gap: 10px;
+}
+
+#deleteBtn {
+    background: #c00000;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.tempo-input-wrap {
+    display: flex;
+    align-items: center;
+    border: 1px solid #374151;
+    border-radius: 6px;
+    padding: 0 10px 0 6px;
+    height: 47px;
+    background: #111827;
+}
+
+.tempo-input-wrap input {
+    width: 70px;
+    border: none;
+    outline: none;
+    font-size: 1.2em;
+    font-family: ui-monospace, Menlo, monospace;
+    background: transparent;
+    color: #fff;
+    text-align: center;
+}
+
+.tempo-label {
+    margin-left: 6px;
+    font-size: 0.9em;
+    color: var(--muted);
+}
+
+.tempo-label {
+    margin-left: 6px;
+    font-size: 0.9em;
+    color: var(--muted);
+}
+
 /* Bottom log */
 .bottom-log {
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
-    height: 100px;
+    height: 130px;
     background: #000;
     color: #89ffb0;
     font-family: ui-monospace, monospace;
@@ -213,6 +272,8 @@ body {
     padding: 8px;
     overflow: auto;
     z-index: 10;
+    margin: 0;
+    border-top: 2px solid #222;
 }
 
 /* Metronome */
@@ -245,15 +306,12 @@ body {
     box-shadow: 0 0 15px #facc15;
 }
 
-/* My own styles */
-.big-input {
-    background: #111827;
-    color: var(--text);
-    border: 1px solid #374151;
-    padding: 15px 8px;
-    border-radius: 4px;
+.mt-bpm {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
+/* My own styles */
 .lr-column {
     display: flex;
     flex-direction: column;

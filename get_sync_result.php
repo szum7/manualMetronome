@@ -70,7 +70,10 @@ if (count($rows) == 0) { // First arriving client
 
     $ret["blink_start_usec"] = $blink_start_usec;
     $ret["blink_start_usec_formatted"] = formatMicrotime($blink_start_usec);
-    $ret["success"] = true;
+    
+    if (isset($ret["offset_usec"]) && $ret["offset_usec"] !== null) {
+        $ret["success"] = true;
+    }
 
 } else { // Other not-first arriving clients
 
@@ -80,13 +83,16 @@ if (count($rows) == 0) { // First arriving client
             $curr = $row;
         }
     }
-    $ret = [
-        "success" => true,
-        "offset_usec" => $curr["offset_usec"],
-        "ref_client_id" => $curr["ref_client_id"],
-        "blink_start_usec" => $curr["blink_start_usec"],
-        "blink_start_usec_formatted" => formatMicrotime($curr["blink_start_usec"])
-    ];
+
+    if ($curr != null) {
+        $ret = [
+            "success" => true,
+            "offset_usec" => $curr["offset_usec"],
+            "ref_client_id" => $curr["ref_client_id"],
+            "blink_start_usec" => $curr["blink_start_usec"],
+            "blink_start_usec_formatted" => formatMicrotime($curr["blink_start_usec"])
+        ];
+    }
 }
 
 function formatMicrotime($microtimeFloat) {
