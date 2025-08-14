@@ -1,326 +1,136 @@
-:root {
-    --primary: #4dabff;
-    --btn1: #156ebb;
-    --btn2: #2c960c;
-    --bg: #0b0f15;
-    --card: #151b24;
-    --muted: #8b95a6;
-    --text: #e5e7eb;
-    --mxpw: 700px;
-}
-
-html,
+/* General Styles */
 body {
     margin: 0;
-    padding: 0;
-    height: 100%;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    font-family: Arial, sans-serif;
+    background: #121212;
+    color: #f5f5f5;
 }
 
-.app-x {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
-
-.page-width {
-    max-width: var(--mxpw);
-    margin: auto;
-}
-
-/* Top bar */
-.top-bar {
-    position: sticky;
+header.top-bar {
+    position: fixed;
     top: 0;
-    background: var(--card);
+    width: 100%;
+    background: #1e1e1e;
+    padding: 10px;
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     align-items: center;
-    flex-wrap: wrap;
-    padding: 8px;
-    border-bottom: 1px solid #1f2937;
-    z-index: 10;
-}
-
-.top-pill {
-    background: #1f2937;
-    padding: 6px 8px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
     font-size: 14px;
+    z-index: 1000;
 }
 
-.top-pill span {
-    font-weight: bold;
+header .field {
+    margin-right: 10px;
 }
 
-.top-pill input,
-.top-pill select {
-    border: 0;
-    background: var(--card);
-    ;
-    font-size: 14px;
-    outline: none;
-    color: var(--text);
+header input, header select {
+    background: #2a2a2a;
+    color: #fff;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 20px;
+}
+
+.select-pill select {
+    border-radius: 20px;
+    padding: 5px 12px;
 }
 
 /* Tabs */
-.tabs {
+nav.tabs {
+    margin-top: 80px; /* top bar space */
     display: flex;
-    background: var(--card);
-    border-bottom: 1px solid #1f2937;
+    border-bottom: 1px solid #333;
 }
 
-.tab-btn {
+.tab-button {
     flex: 1;
-    padding: 10px;
-    border: 0;
-    background: transparent;
-    font-weight: 600;
+    background: #1e1e1e;
+    border: none;
+    padding: 12px;
     cursor: pointer;
-    color: var(--muted);
+    color: #ccc;
+    font-size: 16px;
 }
 
-.tab-btn.active {
-    border-bottom: 3px solid var(--primary);
-    color: var(--primary);
+.tab-button.active {
+    background: #333;
+    color: #fff;
 }
 
-.instructions {
-    padding: 0 20px;
-    padding-bottom: 150px;
-    opacity: 0.85;
+/* Tab Content */
+.tab-content {
+    display: none;
+    padding: 20px;
 }
 
-.instructions li {
-    padding: 5px 0;
+.tab-content.active {
+    display: block;
 }
 
-/* Content */
-.content {
-    flex: 1;
-    overflow: auto;
-    padding: 12px;
-}
-
-.card {
-    background: var(--card);
-    padding: 12px;
-    border-radius: 10px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+/* Wizard Steps */
+.wizard-step {
+    display: none;
     text-align: center;
+}
+
+.wizard-step.active {
+    display: block;
 }
 
 /* Buttons */
-.btn {
-    background: var(--btn1);
-    color: #333;
-    padding: 15px 0;
-    border-radius: 6px;
-    border: 0;
-    cursor: pointer;
-    font-weight: 600;
-    width: 100%;
-    margin-bottom: 8px;
-    color: var(--text);
-}
-
-.btn.fix {
-    padding: 16px 0;
-}
-
-.btn.secondary {
-    background: var(--btn2);
-    border: 1px solid #374151;
-    color: var(--text);
-}
-
-.btn.ghost {
-    background: transparent;
-    border: 1px solid #374151;
-    color: var(--text);
-}
-
-/* Clocks */
-.clock-column {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-top: 5px;
-    margin-bottom: 15px;
-}
-
-.clock-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-
-.clock-label {
+button {
+    background: #444;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    margin: 5px;
+    border-radius: 8px;
     font-size: 14px;
-    color: var(--muted);
+    cursor: pointer;
 }
 
-.clock-display {
-    font-family: ui-monospace, Menlo, monospace;
-    font-variant-numeric: tabular-nums;
-    padding: 4px 6px;
-    border-radius: 4px;
-    min-width: 140px;
-    text-align: right;
+button:hover {
+    background: #666;
 }
 
-/* Circle */
-.circle-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    margin-top: 12px
-}
-
-.circle {
+/* Blinking Circle */
+.blinking-circle {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: rgba(77, 171, 255, 0.08);
+    background: #ff5555;
+    margin: 20px auto;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50%, 100% { opacity: 1; }
+    25%, 75% { opacity: 0.2; }
+}
+
+/* Pill Buttons */
+.pill-buttons {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     justify-content: center;
-    position: relative;
-    cursor: pointer;
+    gap: 8px;
 }
 
-.pulse {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: var(--primary);
-    opacity: 0;
+.pill-buttons button {
+    border-radius: 20px;
 }
 
-.mute-ind {
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    font-size: 14px
-}
-
-.tempo-row {
-    display: flex;
-    align-items: flex-start;
-    /* aligns button and input at the top */
-    gap: 10px;
-}
-
-#deleteBtn {
-    background: #c00000;
-    margin-top: 20px;
-    margin-bottom: 20px;
-}
-
-.tempo-input-wrap {
-    display: flex;
-    align-items: center;
-    border: 1px solid #374151;
-    border-radius: 6px;
-    padding: 0 10px 0 6px;
-    height: 47px;
-    background: #111827;
-}
-
-.tempo-input-wrap input {
-    width: 70px;
-    border: none;
-    outline: none;
-    font-size: 1.2em;
-    font-family: ui-monospace, Menlo, monospace;
-    background: transparent;
-    color: #fff;
-    text-align: center;
-}
-
-.tempo-label {
-    margin-left: 6px;
-    font-size: 0.9em;
-    color: var(--muted);
-}
-
-.tempo-label {
-    margin-left: 6px;
-    font-size: 0.9em;
-    color: var(--muted);
-}
-
-/* Bottom log */
-.bottom-log {
+/* Console */
+footer.console {
     position: fixed;
-    left: 0;
-    right: 0;
     bottom: 0;
-    height: 130px;
-    background: #000;
-    color: #89ffb0;
-    font-family: ui-monospace, monospace;
-    font-size: 12px;
-    padding: 8px;
-    overflow: auto;
-    z-index: 10;
-    margin: 0;
-    border-top: 2px solid #222;
-}
-
-/* Metronome */
-.metronome-visual {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 20px;
-}
-
-.beat-circle {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    background-color: #555;
-    /* inactive circle color */
-    transition: background-color 0.2s ease;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-}
-
-.beat-circle.active {
-    background-color: #4ade80;
-    /* bright green for active beat */
-    box-shadow: 0 0 12px #4ade80;
-}
-
-.beat-circle.first-beat.active {
-    background-color: #facc15;
-    /* bright yellow for downbeat */
-    box-shadow: 0 0 15px #facc15;
-}
-
-.mt-bpm {
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
-
-/* My own styles */
-.lr-column {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.lr-line {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     width: 100%;
+    background: #000;
+    padding: 10px;
+    font-size: 12px;
+    max-height: 120px;
+    overflow-y: auto;
+    border-top: 1px solid #333;
 }
