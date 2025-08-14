@@ -41,7 +41,7 @@ body {
 
 /* Top Bar */
 header.top-bar {
-    position: fixed;
+    position: sticky;
     top: 0;
     width: 100%;
     background: #1e1e1e;
@@ -143,10 +143,19 @@ button:hover {
     animation: blink 1s infinite;
 }
 
-@keyframes blink {
-    0%, 50%, 100% { opacity: 1; }
-    25%, 75% { opacity: 0.2; }
-}
+/* @keyframes blink {
+
+    0%,
+    50%,
+    100% {
+        opacity: 1;
+    }
+
+    25%,
+    75% {
+        opacity: 0.2;
+    }
+} */
 
 /* Pill Buttons */
 .pill-buttons {
@@ -171,4 +180,59 @@ footer.console {
     max-height: 120px;
     overflow-y: auto;
     border-top: 1px solid #333;
+}
+
+
+
+
+
+.toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #0094e9;
+    transition: .3s;
+    border-radius: 26px;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: #4CAF50;
+}
+
+input:checked+.slider:before {
+    transform: translateX(24px);
 }

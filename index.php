@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Metronome App</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
     <!-- Initial Sync ID Page -->
@@ -24,7 +26,7 @@
             <div class="field">Sync ID: <span id="syncIdLabel"></span></div>
             <button id="changeSyncIdBtn" class="small-btn">Change</button>
             <div class="field">Offset: <span id="offset"></span></div>
-            <div class="field">Ref Client ID: <span id="refClientId"></span></div>
+            <!-- <div class="field">Ref Client ID: <span id="refClientId"></span></div> -->
 
             <div class="select-pill">
                 <label>Pitch</label>
@@ -56,38 +58,50 @@
         <main>
             <!-- Setup Tab -->
             <section id="setupTab" class="tab-content active">
-                
+
+                <div class="toggle-wrapper">
+                    <span>Server</span>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-switch">
+                        <span class="slider"></span>
+                    </label>
+                    <span>Client</span>
+                </div>
+
+                <!-- Server -->
+                <div id="content-a">
+                    <div class="" id="step-server">
+                        <div class="blinking-circle"></div>
+                        <button id="setRefPointBtn">Set reference point</button>
+                    </div>
+                </div>
+                <!-- Client -->
+                <div id="content-b" class="hidden">
+                    <div class="" id="step-client">
+                        <div class="blinking-circle"></div>
+                        <div class="pill-buttons">
+                            <button>+1</button>
+                            <button>+10</button>
+                            <button>+100</button>
+                            <button>-1</button>
+                            <button>-10</button>
+                            <button>-100</button>
+                        </div>
+                        <button id="clientGetOffsetBtn">Save Offset</button>
+                    </div>
+                </div>
+
                 <!-- Wizard Step 1: Initial Page -->
-                <div class="wizard-step" id="step-initial">
+                <!-- <div class="wizard-step" id="step-initial">
                     <button id="getOffsetBtn">Get Offset</button>
                     <button id="resetBtn">Reset</button>
-                </div>
+                </div> -->
 
                 <!-- Wizard Step 2: Server or Client -->
-                <div class="wizard-step" id="step-server-client">
+                <!-- <div class="wizard-step" id="step-server-client">
                     <button id="asServerBtn">As Server</button>
                     <button id="asClientBtn">As Client</button>
-                </div>
-
-                <!-- Wizard Step 3: Server Page -->
-                <div class="wizard-step" id="step-server">
-                    <div class="blinking-circle"></div>
-                    <button id="setRefPointBtn">Set reference point</button>
-                </div>
-
-                <!-- Wizard Step 4: Client Page -->
-                <div class="wizard-step" id="step-client">
-                    <div class="blinking-circle"></div>
-                    <div class="pill-buttons">
-                        <button>+1</button>
-                        <button>+10</button>
-                        <button>+100</button>
-                        <button>-1</button>
-                        <button>-10</button>
-                        <button>-100</button>
-                    </div>
-                    <button id="clientGetOffsetBtn">Get Offset</button>
-                </div>
+                </div> -->
 
             </section>
 
@@ -103,4 +117,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>

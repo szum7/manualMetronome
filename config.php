@@ -5,7 +5,7 @@ if ($production == true) {
     require_once 'secret.php';
 } else {
     $db_host = '127.0.0.1';
-    $db_name = 'clock_sync';
+    $db_name = 'metronome_manual';
     $db_user = 'root';
     $db_pass = '';
 }
