@@ -1,0 +1,66 @@
+<?php
+require 'config.php';
+
+$data = json_decode(file_get_contents("php://input"), true);
+
+$sync_id = $data['sync_id'] ?? null;
+$client_id = $data['client_id'] ?? null;
+// $sync_id = 333;
+// $client_id = "c_si68ku17";
+
+if (!isset($client_id) || !isset($sync_id)) {
+    echo json_encode(["error" => "Missing parameters"]);
+    exit;
+}
+
+$pdo = pdo_connect();
+$ret = [];
+
+$stmt = $pdo->prepare(
+    "SELECT *
+    FROM clients 
+    WHERE sync_id = ?
+    AND client_id = ?"
+);
+$stmt->execute([$sync_id, $client_id]);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+if (count($rows) > 0) {
+
+    $ret = [
+        "success" => true,
+        "found" => true,
+        "sync_id" => $sync_id,
+        "client_id" => $client_id,
+        "server_timestamp_usec" => $rows[0]["server_timestamp_usec"],
+        "is_ref" => $rows[0]["is_ref"] === 1 ? true : false,
+        "offset_usec" => $rows[0]["offset_usec"]
+    ];
+
+} else {    
+
+    $ret = [
+        "success" => true,
+        "found" => false
+    ];
+}
+
+$stmt = $pdo->prepare(
+    "SELECT *
+    FROM clients 
+    WHERE sync_id = ?
+    AND is_ref = true"
+);
+$stmt->execute([$sync_id, $client_id]);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+if (count($rows) > 0) {
+
+    $ret["server"] = [
+        "client_id" => $rows[0]["client_id"],
+        "server_timestamp_usec" => $rows[0]["server_timestamp_usec"]
+    ];
+
+}
+
+echo json_encode($ret);

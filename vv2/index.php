@@ -24,7 +24,6 @@
         <header class="top-bar">
             <div class="field">Client ID: <span id="clientId"></span></div>
             <div class="field">Sync ID: <span id="syncIdLabel"></span></div>
-            <div class="field">Role <span id="roleLabel"></span></div>
             <button id="changeSyncIdBtn" class="small-btn">Change</button>
             <div class="field">Offset: <span id="offset"></span></div>
             <div class="select-pill">
@@ -97,7 +96,7 @@
                     </div>
                     <div id="contentClientAlert" class="hidden">
                         <p>No server is set yet for the current room.</p>
-                        <button id="tryAgainBtn">Check again</button>
+                        <button>Check again</button>
                     </div>
                 </div>
 

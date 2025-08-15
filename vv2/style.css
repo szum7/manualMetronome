@@ -1,0 +1,258 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #121212;
+    color: #f5f5f5;
+}
+
+/* Hidden helper */
+.hidden {
+    display: none !important;
+}
+
+/* Initial Sync ID screen */
+.full-page-center {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    background: #121212;
+}
+
+.full-page-center input {
+    background: #2a2a2a;
+    color: #fff;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.full-page-center button {
+    background: #444;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+/* Top Bar */
+header.top-bar {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background: #1e1e1e;
+    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    font-size: 14px;
+    z-index: 1000;
+}
+
+header .field {
+    margin-right: 10px;
+}
+
+header select {
+    background: #2a2a2a;
+    color: #fff;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 20px;
+}
+
+.small-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    background: #555;
+    border: none;
+    cursor: pointer;
+}
+
+/* Tabs */
+nav.tabs {
+    margin-top: 80px;
+    display: flex;
+    border-bottom: 1px solid #333;
+}
+
+.tab-button {
+    flex: 1;
+    background: #1e1e1e;
+    border: none;
+    padding: 12px;
+    cursor: pointer;
+    color: #ccc;
+    font-size: 16px;
+}
+
+.tab-button.active {
+    background: #333;
+    color: #fff;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+    padding: 20px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Wizard Steps */
+.wizard-step {
+    display: none;
+    text-align: center;
+}
+
+.wizard-step.active {
+    display: block;
+}
+
+/* Buttons */
+button {
+    background: #444;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    margin: 5px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #666;
+}
+
+/* Blinking Circle */
+.blinking-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #ff5555;
+    margin: 20px auto;
+    animation: blink 1s infinite;
+}
+
+.blinker.outer {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: lightgray;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.blinker.inner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: red;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+/* @keyframes blink {
+
+    0%,
+    50%,
+    100% {
+        opacity: 1;
+    }
+
+    25%,
+    75% {
+        opacity: 0.2;
+    }
+} */
+
+/* Pill Buttons */
+.pill-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+}
+
+.pill-buttons button {
+    border-radius: 20px;
+}
+
+/* Console */
+footer.console {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: #000;
+    padding: 10px;
+    font-size: 12px;
+    max-height: 120px;
+    overflow-y: auto;
+    border-top: 1px solid #333;
+}
+
+
+
+
+
+.toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #0094e9;
+    transition: .3s;
+    border-radius: 26px;
+}
+
+.slider:before {
+    content: "";
+    position: absolute;
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: #4CAF50;
+}
+
+input:checked+.slider:before {
+    transform: translateX(24px);
+}

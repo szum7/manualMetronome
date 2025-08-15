@@ -1,3 +1,5 @@
+
+
 // RUN
 generateClientId();
 
@@ -9,11 +11,11 @@ function setCustomOffsetUsec(value) {
 // Functions
 EL_SET_SYNC_ID_BTN.addEventListener("click", async () => {
 
-    const syncId = EL_SYNC_ID_INPUT.value.trim();
+    const syncId = document.getElementById("initialSyncId").value.trim();
     setSyncId(syncId);
 
-    hide(EL_SCREEN_SYNC_ID);
-    show(EL_MAIN_APP);
+    EL_SCREEN_SYNC_ID.classList.add("hidden");
+    EL_MAIN_APP.classList.remove("hidden");
 
     try {
         const response = await postJson(API_GET_CLIENT, {

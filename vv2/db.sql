@@ -1,0 +1,12 @@
+CREATE DATABASE IF NOT EXISTS metronome_manual CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE metronome_manual;
+
+CREATE TABLE IF NOT EXISTS clients (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  sync_id INT NOT NULL,
+  client_id VARCHAR(128) NOT NULL,
+  offset_usec BIGINT NOT NULL,
+  server_timestamp_usec BIGINT NULL,
+  is_ref BOOLEAN NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
