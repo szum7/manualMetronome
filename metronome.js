@@ -53,6 +53,11 @@ class Metronome {
     setTickType(value) {
         this.#tickType = value;
     }
+
+    // Getters
+    getOffset() {
+        return this.#offsetUsec;
+    }
     
     // Private methods
     #getEpochUsec() {

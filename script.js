@@ -137,41 +137,14 @@ function generateClientId() {
     setClientId(id);
 }
 
-function updateSyncIdLabel(value) {
-    EL.header.syncIdLabel.textContent = value;
-}
-
-function updateClientIdLabel(value) {
-    EL.header.clientIdLabel.textContent = value;
-}
-
 function setClientId(value) {
     _user.client_id = value;
-    updateClientIdLabel(value);
+    EL.header.clientIdLabel.textContent = value;
 }
 
 function setSyncId(value) {
     _user.sync_id = value;
-    updateSyncIdLabel(value);
-}
-
-function setOffsetUsec(valueUsec) {
-    _offsetUsec = valueUsec;
-    document.getElementById("offset").textContent = valueUsec;
-}
-
-function getEpochUsec() {
-    const ms = performance.timeOrigin + performance.now();
-    return Math.round(ms * 1000);
-}
-
-
-
-
-
-function setCustomOffsetUsec(value) {
-    _customOffsetUsec = value;
-    EL.header.offsetLabel.textContent = formatUsecToSec(value);
+    EL.header.syncIdLabel.textContent = value;
 }
 
 
@@ -179,33 +152,22 @@ function setCustomOffsetUsec(value) {
 
 
 
-function initAudio() {
-    _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-}
 
-function getBeepType() {
-    return EL.header.typeSelect.value;
-}
 
-function getBeepFrequency() {
-    return EL.header.pitchSelect.value;
-}
+
 
 
 function getEpochUsec() {
     const ms = performance.timeOrigin + performance.now();
     return Math.round(ms * 1000);
-}
-
-function updateOffset(delta) {
-    _customOffsetUsec = Math.max(0, _customOffsetUsec + delta);
-    EL.header.offsetLabel.textContent = formatUsecToSec(_customOffsetUsec);
 }
 
 document.querySelectorAll('.pill-buttons button').forEach(btn => {
     btn.addEventListener('click', () => {
-        const delta = parseInt(btn.dataset.delta, 10);
-        updateOffset(delta);
+        
+        _metronomeClient.setOffset(_metronomeClient.getOffset() + parseInt(btn.dataset.delta));
+        EL.header.offsetLabel.textContent = _metronomeClient.getOffset();
+
     });
 });
 
