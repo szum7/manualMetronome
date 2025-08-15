@@ -143,6 +143,26 @@ button:hover {
     animation: blink 1s infinite;
 }
 
+.blinker.outer {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background-color: lightgray;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.blinker.inner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: red;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
 /* @keyframes blink {
 
     0%,

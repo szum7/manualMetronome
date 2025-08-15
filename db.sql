@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS clients (
   sync_id INT NOT NULL,
   client_id VARCHAR(128) NOT NULL,
   offset_usec BIGINT NOT NULL,
+  server_timestamp_usec BIGINT NULL,
   is_ref BOOLEAN NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

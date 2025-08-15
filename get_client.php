@@ -5,8 +5,8 @@ $data = json_decode(file_get_contents("php://input"), true);
 
 $sync_id = $data['sync_id'] ?? null;
 $client_id = $data['client_id'] ?? null;
-//$sync_id = 78567;
-//$client_id = "c_si68ku17";
+// $sync_id = 333;
+// $client_id = "c_si68ku17";
 
 if (!isset($client_id) || !isset($sync_id)) {
     echo json_encode(["error" => "Missing parameters"]);
@@ -32,8 +32,9 @@ if (count($rows) > 0) {
         "found" => true,
         "sync_id" => $sync_id,
         "client_id" => $client_id,
-        "is_ref" => $row[0]["is_ref"],
-        "offset_usec" => $row[0]["offset_usec"]
+        "server_timestamp_usec" => $rows[0]["server_timestamp_usec"],
+        "is_ref" => $rows[0]["is_ref"] === 1 ? true : false,
+        "offset_usec" => $rows[0]["offset_usec"]
     ];
 
 } else {    

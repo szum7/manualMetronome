@@ -26,17 +26,14 @@
             <div class="field">Sync ID: <span id="syncIdLabel"></span></div>
             <button id="changeSyncIdBtn" class="small-btn">Change</button>
             <div class="field">Offset: <span id="offset"></span></div>
-            <!-- <div class="field">Ref Client ID: <span id="refClientId"></span></div> -->
-
             <div class="select-pill">
                 <label>Pitch</label>
                 <select id="pitchSelect">
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
+                    <option value="500">Low</option>
+                    <option value="1200">Medium</option>
+                    <option value="1800">High</option>
                 </select>
             </div>
-
             <div class="select-pill">
                 <label>Type</label>
                 <select id="typeSelect">
@@ -62,46 +59,44 @@
                 <div class="toggle-wrapper">
                     <span>Server</span>
                     <label class="switch">
-                        <input type="checkbox" id="toggle-switch">
+                        <input type="checkbox" id="toggle-sc">
                         <span class="slider"></span>
                     </label>
                     <span>Client</span>
                 </div>
 
                 <!-- Server -->
-                <div id="content-a">
+                <div id="content-server">
                     <div class="" id="step-server">
                         <div class="blinking-circle"></div>
                         <button id="setRefPointBtn">Set reference point</button>
+                        <p>Resets the room!</p>
+
+                        <div id="outer-circle" class="blinker outer">
+                            <div id="inner-circle" class="blinker inner">
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <!-- Client -->
-                <div id="content-b" class="hidden">
-                    <div class="" id="step-client">
-                        <div class="blinking-circle"></div>
-                        <div class="pill-buttons">
-                            <button>+1</button>
-                            <button>+10</button>
-                            <button>+100</button>
-                            <button>-1</button>
-                            <button>-10</button>
-                            <button>-100</button>
+                <div id="content-client" class="hidden">
+                    <div class="" id="step-client">                        
+                        <div id="outer-circle2" class="blinker outer">
+                            <div id="inner-circle2" class="blinker inner">
+                            </div>
                         </div>
+                        <div class="pill-buttons">
+                            <button data-delta="1000">+1</button>
+                            <button data-delta="10000">+10</button>
+                            <button data-delta="100000">+100</button>
+                            <button data-delta="-1000">-1</button>
+                            <button data-delta="-10000">-10</button>
+                            <button data-delta="-100000">-100</button>
+                        </div>
+                        <div>Offset: <span id="offset-label">0</span></div>
                         <button id="clientGetOffsetBtn">Save Offset</button>
                     </div>
                 </div>
-
-                <!-- Wizard Step 1: Initial Page -->
-                <!-- <div class="wizard-step" id="step-initial">
-                    <button id="getOffsetBtn">Get Offset</button>
-                    <button id="resetBtn">Reset</button>
-                </div> -->
-
-                <!-- Wizard Step 2: Server or Client -->
-                <!-- <div class="wizard-step" id="step-server-client">
-                    <button id="asServerBtn">As Server</button>
-                    <button id="asClientBtn">As Client</button>
-                </div> -->
 
             </section>
 
