@@ -1,41 +1,79 @@
 // RUN
 generateClientId();
 
-function setCustomOffsetUsec(value) {
-    _customOffsetUsec = value;
-    EL_OFFSET_LABEL.textContent = formatUsecToSec(value);
+function setUserRole(value) {
+    _user.is_ref = value;
+    EL.header.roleLabel.textContent = value === true ? "Server" : "Client";
+}
+
+function setUserOffset(value) {
+    _user.offset_usec = value;
+    EL.header.offsetLabel.textContent = formatUsecToSec(value);
 }
 
 // Functions
-EL_SET_SYNC_ID_BTN.addEventListener("click", async () => {
+EL.initPage.okBtn.addEventListener("click", async () => {
 
-    const syncId = EL_SYNC_ID_INPUT.value.trim();
+    const syncId = EL.initPage.syncIdInput.value.trim();
     setSyncId(syncId);
 
-    hide(EL_SCREEN_SYNC_ID);
-    show(EL_MAIN_APP);
+    hide(EL.initPage.page);
+    show(EL.mainApp);
 
     try {
+
         const response = await postJson(API_GET_CLIENT, {
-            sync_id: _syncId,
-            client_id: _clientId
+            sync_id: _user.sync_id,
+            client_id: _user.client_id
         });
+
         console.log(response);
+
+        // Successful call
         if (response.success === true) {
+
+            // User has already been in the room
             if (response.found === true) {
 
-                //setOffsetUsec(response.offset_usec);
+                setUserRole(response.is_ref);
+                setUserOffset(response.offset_usec);
+                _user.server.client_id = response.server.client_id;
+                _user.server.server_timestamp_usec = response.server.server_timestamp_usec;
 
+                // User is Server
                 if (response.is_ref === true) {
-                    setToServerOrClient("server");
-                    requestAnimationFrame(animate);
-                } else {
-                    if (!!response.server) {
-                        setToServerOrClient("client");
-                        setCustomOffsetUsec(response.offset_usec);
-                        _serverTimestampUsec = response.server.server_timestamp_usec;
-                    } else {
 
+                    showSettingServerContent();
+
+                    let startTime = calculateStartTimeUsec(
+                        _user.server_timestamp_usec,
+                        30,
+                        getEpochUsec()
+                    );
+                    _metronomeServer.start(startTime);
+                    _metronomeServer.unmute();
+
+                }
+                // User is Client
+                else {
+
+                    // Reference was found for the Client
+                    if (!!response.server) {
+
+                        showSettingClientContent();
+                        
+                        let startTime = calculateStartTimeUsec(
+                            _user.server.server_timestamp_usec,
+                            30,
+                            getEpochUsec()
+                        );
+                        _metronomeClient.start(startTime);
+                        _metronomeClient.unmute();
+
+                    } 
+                    // Reference not found / Should not be possible
+                    else {
+                        log("Client found without a Server.");
                     }
                 }
 
@@ -52,16 +90,16 @@ EL_SET_SYNC_ID_BTN.addEventListener("click", async () => {
     }
 });
 
-document.getElementById("setRefPointBtn").addEventListener("click", async () => {
+EL.setupTab.server.setReferenceBtn.addEventListener("click", async () => {
     let ts = getEpochUsec();
     try {
         const response = await postJson(API_SET_AS_SERVER, {
-            sync_id: _syncId,
-            client_id: _clientId,
+            sync_id: _user.sync_id,
+            client_id: _user.client_id,
             server_timestamp_usec: ts
         });
         if (response.success === true) {
-            log(`Room: ${_syncId}, timestamp: ${ts}`);
+            log(`Room: ${_user.sync_id}, timestamp: ${ts}`);
             requestAnimationFrame(animate);
         } else {
             log(`Error: ${JSON.stringify(response)}`);
@@ -71,12 +109,12 @@ document.getElementById("setRefPointBtn").addEventListener("click", async () => 
     }
 });
 
-document.getElementById("clientSaveOffset").addEventListener("click", async () => {
+EL.setupTab.client.saveOffsetBtn.addEventListener("click", async () => {
 
     try {
         const response = await postJson(API_SAVE_CLIENT_OFFSET, {
-            sync_id: _syncId,
-            client_id: _clientId,
+            sync_id: _user.sync_id,
+            client_id: _user.client_id,
             offset_usec: _customOffsetUsec
         });
         console.log(response);
@@ -100,26 +138,26 @@ function generateClientId() {
 }
 
 function updateSyncIdLabel(value) {
-    document.getElementById("syncIdLabel").textContent = value;
+    EL.header.syncIdLabel.textContent = value;
 }
 
 function updateClientIdLabel(value) {
-    document.getElementById("clientId").textContent = value;
+    EL.header.clientIdLabel.textContent = value;
 }
 
 function setClientId(value) {
-    _clientId = value;
+    _user.client_id = value;
     updateClientIdLabel(value);
 }
 
 function setSyncId(value) {
-    _syncId = value;
+    _user.sync_id = value;
     updateSyncIdLabel(value);
 }
 
-function setOffsetUsec(value) {
-    _offsetUsec = value;
-    document.getElementById("offset").textContent = value;
+function setOffsetUsec(valueUsec) {
+    _offsetUsec = valueUsec;
+    document.getElementById("offset").textContent = valueUsec;
 }
 
 function getEpochUsec() {
@@ -131,79 +169,27 @@ function getEpochUsec() {
 
 
 
-
-
-
-
-EL_CIRCLE_SERVER.addEventListener('click', () => {
-    _isServerMuted = !_isServerMuted;
-});
-
-EL_CIRCLE_CLIENT.addEventListener('click', () => {
-    _isClientMuted = !_isClientMuted;
-});
-
-
-function animate() {
-    const now = getEpochUsec();
-    //const firstBeatTime = _serverTimestampUsec + _offsetUsec;
-    const elapsed = now - _serverTimestampUsec;
-
-    if (elapsed >= 0) {
-        const beatNumber = Math.floor(elapsed / _beatPeriodUsec);
-        if (beatNumber !== _serverLastBeatN) {
-            _serverLastBeatN = beatNumber;
-            blinkOnce(EL_SERVER_BLINKER, _isServerMuted);
-        }
-    }
-
-    requestAnimationFrame(animate);
+function setCustomOffsetUsec(value) {
+    _customOffsetUsec = value;
+    EL.header.offsetLabel.textContent = formatUsecToSec(value);
 }
 
-function blinkOnce(element, isMuted) {
-    element.style.opacity = 1;
-    if (!isMuted) {
-        playBeep();
-    }
-    setTimeout(() => {
-        element.style.opacity = 0;
-    }, 150); // show for 150 ms
-}
 
-function playBeep(frequency) {
-    if (!_audioCtx) initAudio();
 
-    frequency = (typeof frequency === 'undefined') ? getBeepFrequency() : frequency;
 
-    const osc = _audioCtx.createOscillator();
-    const gain = _audioCtx.createGain();
 
-    osc.type = getBeepType(); // "sine", "square", "triangle", "sawtooth"
-    osc.frequency.value = frequency; // frequency from dropdown
-    gain.gain.value = 0.1;
-
-    osc.connect(gain);
-    gain.connect(_audioCtx.destination);
-
-    osc.start();
-    osc.stop(_audioCtx.currentTime + 0.1); // 0.1s beep
-}
 
 function initAudio() {
     _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 }
 
 function getBeepType() {
-    return document.getElementById("typeSelect").value;
+    return EL.header.typeSelect.value;
 }
 
 function getBeepFrequency() {
-    return document.getElementById("pitchSelect").value;
+    return EL.header.pitchSelect.value;
 }
-
-
-
-
 
 
 function getEpochUsec() {
@@ -211,32 +197,9 @@ function getEpochUsec() {
     return Math.round(ms * 1000);
 }
 
-function startCustomBlinking() {
-    if (_customBlinkStart !== null) return;
-    _customBlinkStart = getEpochUsec();
-    _clientLastBeatN = -1;
-    requestAnimationFrame(animateBlink);
-}
-
-function animateBlink() {
-    const now = getEpochUsec();
-    const firstBeatTime = _customBlinkStart + _customOffsetUsec;
-    const elapsed = now - firstBeatTime;
-
-    if (elapsed >= 0) {
-        const beatNumber = Math.floor(elapsed / _beatPeriodUsec);
-        if (beatNumber !== _clientLastBeatN) {
-            _clientLastBeatN = beatNumber;
-            blinkOnce(EL_CLIENT_BLINKER, _isClientMuted);
-        }
-    }
-
-    requestAnimationFrame(animateBlink);
-}
-
 function updateOffset(delta) {
     _customOffsetUsec = Math.max(0, _customOffsetUsec + delta);
-    EL_OFFSET_LABEL.textContent = formatUsecToSec(_customOffsetUsec);
+    EL.header.offsetLabel.textContent = formatUsecToSec(_customOffsetUsec);
 }
 
 document.querySelectorAll('.pill-buttons button').forEach(btn => {
@@ -268,6 +231,21 @@ function log(message) {
     const timestamp = now.toTimeString().split(" ")[0] + "." + now.getMilliseconds().toString().padStart(5, '0');
     const entry = document.createElement("div");
     entry.textContent = `${timestamp} - ${message}`;
-    EL_CONSOLE.appendChild(entry);
-    EL_CONSOLE.scrollTop = EL_CONSOLE.scrollHeight;
+    EL.console.appendChild(entry);
+    EL.console.scrollTop = EL.console.scrollHeight;
+}
+
+function calculateStartTimeUsec(referenceStartUsec, bpm, nowUsec, offsetUsec = 0) {
+    // TODO offsetUsec doesn't make sense i think and can be removed
+    const beatPeriodUsec = (60 / bpm) * 1_000_000;
+    const adjustedStart = referenceStartUsec + offsetUsec;
+    const elapsed = nowUsec - adjustedStart;
+
+    if (elapsed < 0) {
+        // The start is in the future
+        return adjustedStart;
+    }
+
+    const beatsElapsed = Math.floor(elapsed / beatPeriodUsec);
+    return adjustedStart + (beatsElapsed + 1) * beatPeriodUsec;
 }

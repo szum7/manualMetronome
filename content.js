@@ -8,28 +8,46 @@ document.querySelectorAll(".tab-button").forEach(btn => {
     });
 });
 
-EL_TOGGLE_SC.addEventListener('change', () => {
-    toggle(EL_CONTENT_SERVER, EL_TOGGLE_SC.checked);
-    toggle(EL_CONTENT_CLIENT, !EL_TOGGLE_SC.checked);
-    _isServerMuted = true;
-    _isClientMuted = true;
+EL.setupTab.scToggle.toggle.addEventListener('change', () => {
+    toggle(EL.setupTab.scToggle.contentServer, EL.setupTab.scToggle.toggle.checked);
+    toggle(EL.setupTab.scToggle.contentClient, !EL.setupTab.scToggle.toggle.checked);
+    _metronomeServer.mute();
+    _metronomeClient.mute();
 });
 
-EL_CHANGE_SYNC_ID_BTN.addEventListener("click", () => {
-    hide(EL_MAIN_APP);
-    show(EL_SCREEN_SYNC_ID);
+EL.header.changeSyncIdBtn.addEventListener("click", () => {
+    hide(EL.mainApp);
+    show(EL.initPage.page);
 });
 
-function setToServerOrClient(name) {
-    if (name === "server") {
-        EL_TOGGLE_SC.checked = false;
-        hide(EL_CONTENT_CLIENT);
-        show(EL_CONTENT_SERVER);
-    } else if (name === "client") {
-        EL_TOGGLE_SC.checked = true;
-        hide(EL_CONTENT_SERVER);
-        show(EL_CONTENT_CLIENT);
-    }
+EL.setupTab.server.circle.addEventListener('click', () => {
+    _metronomeServer.toggleMute();
+});
+
+EL.setupTab.client.circle.addEventListener('click', () => {
+    _metronomeClient.toggleMute();
+});
+
+EL.header.pitchSelect.addEventListener("change", () => {
+    _metronomeServer.setTickPitch(EL.header.pitchSelect.value);
+    _metronomeClient.setTickPitch(EL.header.pitchSelect.value);
+});
+
+EL.header.typeSelect.addEventListener("change", () => {
+    _metronomeServer.setTickType(EL.header.typeSelect.value);
+    _metronomeClient.setTickType(EL.header.typeSelect.value);
+});
+
+function showSettingServerContent() {
+    EL.setupTab.scToggle.toggle.checked = false;
+    hide(EL.setupTab.scToggle.contentClient);
+    show(EL.setupTab.scToggle.contentServer);
+}
+
+function showSettingClientContent() {
+    EL.setupTab.scToggle.toggle.checked = true;
+    hide(EL.setupTab.scToggle.contentServer);
+    show(EL.setupTab.scToggle.contentClient);
 }
 
 function hide(id) { id.classList.toggle('hidden', true); }
