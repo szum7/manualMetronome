@@ -11,7 +11,7 @@
 <body>
 
     <!-- Initial Sync ID Page -->
-    <div id="syncIdEntry" class="full-page-center">
+    <div id="screenSyncId" class="full-page-center">
         <h2>Enter Sync ID</h2>
         <input id="initialSyncId" type="text" value="123">
         <button id="proceedBtn">Proceed</button>
@@ -67,22 +67,20 @@
 
                 <!-- Server -->
                 <div id="content-server">
-                    <div class="" id="step-server">
-                        <div class="blinking-circle"></div>
+                    <div class="">
                         <button id="setRefPointBtn">Set reference point</button>
                         <p>Resets the room!</p>
-
-                        <div id="outer-circle" class="blinker outer">
-                            <div id="inner-circle" class="blinker inner">
+                        <div id="blinkerServerOuter" class="blinker outer">
+                            <div id="blinkerServerInner" class="blinker inner">
                             </div>
                         </div>
                     </div>
                 </div>
                 <!-- Client -->
                 <div id="content-client" class="hidden">
-                    <div class="" id="step-client">                        
-                        <div id="outer-circle2" class="blinker outer">
-                            <div id="inner-circle2" class="blinker inner">
+                    <div id="contentClientInner" class="hidden">
+                        <div id="blinkerClientOuter" class="blinker outer">
+                            <div id="blinkerClientInner" class="blinker inner">
                             </div>
                         </div>
                         <div class="pill-buttons">
@@ -93,8 +91,12 @@
                             <button data-delta="-10000">-10</button>
                             <button data-delta="-100000">-100</button>
                         </div>
-                        <div>Offset: <span id="offset-label">0</span></div>
-                        <button id="clientGetOffsetBtn">Save Offset</button>
+                        <div>Offset: <span id="offset-label">0</span> s</div>
+                        <button id="clientSaveOffset">Save Offset</button>
+                    </div>
+                    <div id="contentClientAlert" class="hidden">
+                        <p>No server is set yet for the current room.</p>
+                        <button>Check again</button>
                     </div>
                 </div>
 

@@ -1,21 +1,42 @@
 // Api urls
 const API_GET_CLIENT = "get_client.php";
 const API_SET_AS_SERVER = "save_as_server.php";
+const API_SAVE_CLIENT_OFFSET = "save_client_offset.php";
 
 // Elements
-const consoleLog = document.getElementById("consoleLog");
-const syncIdEntry = document.getElementById("syncIdEntry");
-const mainApp = document.getElementById("mainApp");
-const EL_CIRCLE = document.getElementById("outer-circle");
+const EL_CONSOLE = document.getElementById("consoleLog");
+const EL_SCREEN_SYNC_ID = document.getElementById("screenSyncId");
+const EL_MAIN_APP = document.getElementById("mainApp");
+const EL_CIRCLE_SERVER = document.getElementById("blinkerServerOuter");
+const EL_CIRCLE_CLIENT = document.getElementById("blinkerClientOuter");
+const EL_TOGGLE_SC = document.getElementById('toggle-sc');
+const EL_CONTENT_SERVER = document.getElementById('content-server');
+const EL_CONTENT_CLIENT = document.getElementById('content-client');
+const EL_SERVER_BLINKER = document.getElementById('blinkerServerInner');
+const EL_CLIENT_BLINKER = document.getElementById('blinkerClientInner');
+const EL_OFFSET_LABEL = document.getElementById('offset-label');
 
 // Globals
-let _sync_id = null;
-let _client_id = null;
-let _offsetUsec = null;
-let _server_timestamp_usec = null;
+let _syncId = null;
+let _clientId = null;
+//let _offsetUsec = null;
+let _serverTimestampUsec = null;
+let _customBlinkStart = null;
+let _customOffsetUsec = 0;
+let _clientLastBeatN = -1;
+let _isClientMuted = true;
+let _isServerMuted = true;
+const _bpm = 30;
+const _beatPeriodUsec = (60 / _bpm) * 1_000_000;
+let _serverLastBeatN = -1;
 
 // RUN
 generateClientId();
+
+function setCustomOffsetUsec(value) {
+    _customOffsetUsec = value;
+    EL_OFFSET_LABEL.textContent = formatUsecToSec(value);
+}
 
 // Functions
 document.getElementById("proceedBtn").addEventListener("click", async () => {
@@ -23,26 +44,31 @@ document.getElementById("proceedBtn").addEventListener("click", async () => {
     const syncId = document.getElementById("initialSyncId").value.trim();
     setSyncId(syncId);
 
-    syncIdEntry.classList.add("hidden");
-    mainApp.classList.remove("hidden");
+    EL_SCREEN_SYNC_ID.classList.add("hidden");
+    EL_MAIN_APP.classList.remove("hidden");
 
     try {
-        const res = await postJson(API_GET_CLIENT, {
-            sync_id: _sync_id,
-            client_id: _client_id
+        const response = await postJson(API_GET_CLIENT, {
+            sync_id: _syncId,
+            client_id: _clientId
         });
-        console.log(res);
-        if (res.success === true) {
-            if (res.found === true) {
+        console.log(response);
+        if (response.success === true) {
+            if (response.found === true) {
 
-                setOffsetUsec(res.offset_usec);
-                _server_timestamp_usec = res.server_timestamp_usec;
+                //setOffsetUsec(response.offset_usec);
 
-                if (res.is_ref === true) {
+                if (response.is_ref === true) {
                     setToServerOrClient("server");
                     requestAnimationFrame(animate);
                 } else {
-                    setToServerOrClient("client");
+                    if (!!response.server) {
+                        setToServerOrClient("client");
+                        setCustomOffsetUsec(response.offset_usec);
+                        _serverTimestampUsec = response.server.server_timestamp_usec;
+                    } else {
+
+                    }
                 }
 
                 startCustomBlinking();
@@ -51,7 +77,7 @@ document.getElementById("proceedBtn").addEventListener("click", async () => {
 
             }
         } else {
-            log(`Error: ${JSON.stringify(res)}`);
+            log(`Error: ${JSON.stringify(response)}`);
         }
     } catch (e) {
         log('Network error: ' + e.message);
@@ -61,15 +87,35 @@ document.getElementById("proceedBtn").addEventListener("click", async () => {
 document.getElementById("setRefPointBtn").addEventListener("click", async () => {
     let ts = getEpochUsec();
     try {
-        const res = await postJson(API_SET_AS_SERVER, {
-            sync_id: _sync_id,
-            client_id: _client_id,
+        const response = await postJson(API_SET_AS_SERVER, {
+            sync_id: _syncId,
+            client_id: _clientId,
             server_timestamp_usec: ts
         });
-        if (res.success === true) {
-            log(`Room: ${_sync_id}, timestamp: ${ts}`);
+        if (response.success === true) {
+            log(`Room: ${_syncId}, timestamp: ${ts}`);
+            requestAnimationFrame(animate);
         } else {
-            log(`Error: ${JSON.stringify(res)}`);
+            log(`Error: ${JSON.stringify(response)}`);
+        }
+    } catch (e) {
+        log('Network error: ' + e.message);
+    }
+});
+
+document.getElementById("clientSaveOffset").addEventListener("click", async () => {
+
+    try {
+        const response = await postJson(API_SAVE_CLIENT_OFFSET, {
+            sync_id: _syncId,
+            client_id: _clientId,
+            offset_usec: _customOffsetUsec
+        });
+        console.log(response);
+        if (response.success === true) {
+            log("Offset saved.");
+        } else {
+            log(`Error: ${JSON.stringify(response)}`);
         }
     } catch (e) {
         log('Network error: ' + e.message);
@@ -94,12 +140,12 @@ function updateClientIdLabel(value) {
 }
 
 function setClientId(value) {
-    _client_id = value;
+    _clientId = value;
     updateClientIdLabel(value);
 }
 
 function setSyncId(value) {
-    _sync_id = value;
+    _syncId = value;
     updateSyncIdLabel(value);
 }
 
@@ -113,13 +159,11 @@ function getEpochUsec() {
     return Math.round(ms * 1000);
 }
 
-// Change Sync ID button
 document.getElementById("changeSyncIdBtn").addEventListener("click", () => {
-    mainApp.classList.add("hidden");
-    syncIdEntry.classList.remove("hidden");
+    EL_MAIN_APP.classList.add("hidden");
+    EL_SCREEN_SYNC_ID.classList.remove("hidden");
 });
 
-// Tab switching
 document.querySelectorAll(".tab-button").forEach(btn => {
     btn.addEventListener("click", () => {
         document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
@@ -130,35 +174,11 @@ document.querySelectorAll(".tab-button").forEach(btn => {
     });
 });
 
-async function postJson(url, payload) {
-    console.log(JSON.stringify(payload));
-    const r = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    });
-    return r.json();
-}
-
-function log(message) {
-    const now = new Date();
-    const timestamp = now.toTimeString().split(" ")[0] + "." + now.getMilliseconds().toString().padStart(5, '0');
-    const entry = document.createElement("div");
-    entry.textContent = `${timestamp} - ${message}`;
-    consoleLog.appendChild(entry);
-    consoleLog.scrollTop = consoleLog.scrollHeight;
-}
-
-const EL_TOGGLE_SC = document.getElementById('toggle-sc');
-const EL_CONTENT_SERVER = document.getElementById('content-server');
-const EL_CONTENT_CLIENT = document.getElementById('content-client');
-
 EL_TOGGLE_SC.addEventListener('change', () => {
     EL_CONTENT_SERVER.classList.toggle('hidden', EL_TOGGLE_SC.checked);
     EL_CONTENT_CLIENT.classList.toggle('hidden', !EL_TOGGLE_SC.checked);
-    _isMuted = true;
+    _isServerMuted = true;
+    _isClientMuted = true;
 });
 
 function setToServerOrClient(name) {
@@ -173,28 +193,25 @@ function setToServerOrClient(name) {
     }
 }
 
-let _isMuted = false;
-EL_CIRCLE.addEventListener('click', () => {
-    _isMuted = !_isMuted;
+EL_CIRCLE_SERVER.addEventListener('click', () => {
+    _isServerMuted = !_isServerMuted;
+});
+
+EL_CIRCLE_CLIENT.addEventListener('click', () => {
+    _isClientMuted = !_isClientMuted;
 });
 
 
-let bpm = 30;
-
-const beatPeriodUsec = (60 / bpm) * 1_000_000;
-let lastBeatNumber = -1;
-const innerCircle = document.getElementById('inner-circle');
-
 function animate() {
     const now = getEpochUsec();
-    const firstBeatTime = _server_timestamp_usec + _offsetUsec;
-    const elapsed = now - firstBeatTime;
+    //const firstBeatTime = _serverTimestampUsec + _offsetUsec;
+    const elapsed = now - _serverTimestampUsec;
 
     if (elapsed >= 0) {
-        const beatNumber = Math.floor(elapsed / beatPeriodUsec);
-        if (beatNumber !== lastBeatNumber) {
-            lastBeatNumber = beatNumber;
-            blinkOnce(innerCircle, _isMuted);
+        const beatNumber = Math.floor(elapsed / _beatPeriodUsec);
+        if (beatNumber !== _serverLastBeatN) {
+            _serverLastBeatN = beatNumber;
+            blinkOnce(EL_SERVER_BLINKER, _isServerMuted);
         }
     }
 
@@ -253,48 +270,34 @@ function getEpochUsec() {
     return Math.round(ms * 1000);
 }
 
-// Blink settings
-let _customBlinkStart = null;     // usec
-let _customOffsetUsec = 0;        // usec, always positive
-
-let lastBeatNumber2 = -1;
-let _isMuted2 = false;
-
-const innerCircle2 = document.getElementById('inner-circle2');
-const offsetLabel = document.getElementById('offset-label');
-
-// Start blinking
 function startCustomBlinking() {
-    if (_customBlinkStart !== null) return; // already running
+    if (_customBlinkStart !== null) return;
     _customBlinkStart = getEpochUsec();
-    lastBeatNumber2 = -1;
+    _clientLastBeatN = -1;
     requestAnimationFrame(animateBlink);
 }
 
-// Blink animation (drift-free)
 function animateBlink() {
     const now = getEpochUsec();
     const firstBeatTime = _customBlinkStart + _customOffsetUsec;
     const elapsed = now - firstBeatTime;
 
     if (elapsed >= 0) {
-        const beatNumber = Math.floor(elapsed / beatPeriodUsec);
-        if (beatNumber !== lastBeatNumber2) {
-            lastBeatNumber2 = beatNumber;
-            blinkOnce(innerCircle2, _isMuted2);
+        const beatNumber = Math.floor(elapsed / _beatPeriodUsec);
+        if (beatNumber !== _clientLastBeatN) {
+            _clientLastBeatN = beatNumber;
+            blinkOnce(EL_CLIENT_BLINKER, _isClientMuted);
         }
     }
 
     requestAnimationFrame(animateBlink);
 }
 
-// Update offset and UI label
 function updateOffset(delta) {
     _customOffsetUsec = Math.max(0, _customOffsetUsec + delta);
-    offsetLabel.textContent = formatOffsetLabel(_customOffsetUsec) + ' s';
+    EL_OFFSET_LABEL.textContent = formatUsecToSec(_customOffsetUsec);
 }
 
-// Attach button click events
 document.querySelectorAll('.pill-buttons button').forEach(btn => {
     btn.addEventListener('click', () => {
         const delta = parseInt(btn.dataset.delta, 10);
@@ -302,15 +305,28 @@ document.querySelectorAll('.pill-buttons button').forEach(btn => {
     });
 });
 
-function formatOffsetLabel(usec) {
+function formatUsecToSec(usec) {
     const seconds = usec / 1_000_000;
     return seconds.toFixed(3).padStart(6, '0'); // ensures 00.000 style
 }
 
-// Init label
-offsetLabel.textContent = formatOffsetLabel(_customOffsetUsec) + ' s';
+async function postJson(url, payload) {
+    console.log(JSON.stringify(payload));
+    const r = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
+    return r.json();
+}
 
-
-
-
-
+function log(message) {
+    const now = new Date();
+    const timestamp = now.toTimeString().split(" ")[0] + "." + now.getMilliseconds().toString().padStart(5, '0');
+    const entry = document.createElement("div");
+    entry.textContent = `${timestamp} - ${message}`;
+    EL_CONSOLE.appendChild(entry);
+    EL_CONSOLE.scrollTop = EL_CONSOLE.scrollHeight;
+}

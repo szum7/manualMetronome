@@ -45,4 +45,22 @@ if (count($rows) > 0) {
     ];
 }
 
+$stmt = $pdo->prepare(
+    "SELECT *
+    FROM clients 
+    WHERE sync_id = ?
+    AND is_ref = true"
+);
+$stmt->execute([$sync_id, $client_id]);
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+if (count($rows) > 0) {
+
+    $ret["server"] = [
+        "client_id" => $rows[0]["client_id"],
+        "server_timestamp_usec" => $rows[0]["server_timestamp_usec"]
+    ];
+
+}
+
 echo json_encode($ret);
