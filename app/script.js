@@ -2,6 +2,17 @@
 generateClientId();
 
 // Functions
+function updateClient(response) {
+    setUserRole(response.is_ref);
+    setUserOffset(response.offset_usec);
+    _user.server.client_id = response.server.client_id;
+    _user.server.timestamp_usec = response.server.timestamp_usec;
+}
+
+function isSuccessfulCall(response) { return response.success === true; }
+function isUserNew(response) { return response.found !== true; }
+function isServerSet(response) { return !!response.server.client_id; }
+
 // Init page: Set Sync ID
 EL.initPage.okBtn.addEventListener("click", async () => {
 
@@ -19,17 +30,27 @@ EL.initPage.okBtn.addEventListener("click", async () => {
         });
 
         console.log(response);
+        
+        if (isSuccessfulCall(response)) {
+            
+            if (isUserNew(response)) { // User's first time in the room
+                
+                if (isServerSet(response)) { // Reference was found for the room
 
-        // Successful call
-        if (response.success === true) {
+                    show(EL.setupTab.client.content);
+                    showSettingClientContent();
 
+                } else {
+
+                    show(EL.setupTab.client.contentNoRef);
+                    showSettingServerContent();
+
+                }
+            } 
             // User has already been in the room
-            if (response.found === true) {
+            else {
 
-                setUserRole(response.is_ref);
-                setUserOffset(response.offset_usec);
-                _user.server.client_id = response.server.client_id;
-                _user.server.timestamp_usec = response.server.timestamp_usec;
+                updateClient(response);
 
                 // User is Server
                 if (response.is_ref === true) {
@@ -48,10 +69,11 @@ EL.initPage.okBtn.addEventListener("click", async () => {
                 // User is Client
                 else {
 
-                    // Reference was found for the Client
-                    if (!!response.server) {
+                    // Reference was found for the Room
+                    if (!!response.server.client_id) {
 
                         showSettingClientContent();
+                        show(EL.setupTab.client.content);
                         
                         let startTime = calculateStartTimeUsec(
                             _user.server.timestamp_usec,
@@ -67,11 +89,6 @@ EL.initPage.okBtn.addEventListener("click", async () => {
                         log("Client found without a Server.");
                     }
                 }
-
-                startCustomBlinking();
-
-            } else {
-
             }
         } else {
             log(`Error: ${JSON.stringify(response)}`);
@@ -113,6 +130,47 @@ EL.setupTab.client.saveOffsetBtn.addEventListener("click", async () => {
         console.log(response);
         if (response.success === true) {
             log("Offset saved.");
+        } else {
+            log(`Error: ${JSON.stringify(response)}`);
+        }
+    } catch (e) {
+        log('Network error: ' + e.message);
+    }
+});
+
+// Setup/Client Try Again
+EL.setupTab.client.tryAgainBtn.addEventListener("click", async () => {
+    try {
+        const response = await postJson(API_GET_CLIENT, {
+            sync_id: _user.sync_id,
+            client_id: _user.client_id
+        });
+        if (response.success === true) {
+            
+            log(`Updated.`);
+
+            if (!isUserNew(response)) {
+                updateClient(response);
+            }
+
+            if (!!response.server.client_id) {
+                hide(EL.setupTab.client.contentNoRef);
+                show(EL.setupTab.client.content);
+            }
+
+        } else {
+            log(`Error: ${JSON.stringify(response)}`);
+        }
+    } catch (e) {
+        log('Network error: ' + e.message);
+    }
+});
+
+document.getElementById("clearDb").addEventListener("click", async () => {
+    try {
+        const response = await postJson("clear_db.php", {});
+        if (response.success === true) {
+            log(`Database cleared.`);
         } else {
             log(`Error: ${JSON.stringify(response)}`);
         }

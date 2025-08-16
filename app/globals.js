@@ -37,6 +37,8 @@ const EL = {
             "saveOffsetBtn": document.getElementById("saveOffsetBtn"),
             "tryAgainBtn": document.getElementById("tryAgainBtn"),
             "offsetAdjustPills": document.querySelectorAll('.pill-buttons button'),
+            "contentNoRef": document.getElementById("contentClientAlert"),
+            "content": document.getElementById("contentClientInner"),
         }
     },
     "console": document.getElementById("consoleLog"),

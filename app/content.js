@@ -50,6 +50,6 @@ function showSettingClientContent() {
     show(EL.setupTab.scToggle.contentClient);
 }
 
-function hide(id) { id.classList.toggle('hidden', true); }
-function show(id) { id.classList.toggle('hidden', false); }
-function toggle(id, value) { id.classList.toggle('hidden', value); }
+function hide(el) { el.classList.toggle('hidden', true); }
+function show(el) { el.classList.toggle('hidden', false); }
+function toggle(el, value) { el.classList.toggle('hidden', value); }

@@ -47,7 +47,11 @@ if (count($rows) > 0) {
 
     $ret = [
         "success" => true,
-        "found" => false
+        "found" => false,
+        "server" => [
+            "client_id" => null,
+            "timestamp_usec" => null
+        ]
     ];
 }
 

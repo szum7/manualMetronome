@@ -44,6 +44,7 @@
                     <option value="sawtooth">Sawtooth</option>
                 </select>
             </div>
+            <button id="clearDb" class="small-btn">Clear DB</button>
         </header>
 
         <!-- Tabs -->
@@ -67,7 +68,7 @@
                 </div>
 
                 <!-- Server -->
-                <div id="contentServer">
+                <div id="contentServer" class="hidden">
                     <div class="">
                         <button id="setReferenceBtn">Set reference point</button>
                         <p>Resets the room!</p>
