@@ -1,17 +1,8 @@
 // RUN
 generateClientId();
 
-function setUserRole(value) {
-    _user.is_ref = value;
-    EL.header.roleLabel.textContent = value === true ? "Server" : "Client";
-}
-
-function setUserOffset(value) {
-    _user.offset_usec = value;
-    EL.header.offsetLabel.textContent = formatUsecToSec(value);
-}
-
 // Functions
+// Init page: Set Sync ID
 EL.initPage.okBtn.addEventListener("click", async () => {
 
     const syncId = EL.initPage.syncIdInput.value.trim();
@@ -38,7 +29,7 @@ EL.initPage.okBtn.addEventListener("click", async () => {
                 setUserRole(response.is_ref);
                 setUserOffset(response.offset_usec);
                 _user.server.client_id = response.server.client_id;
-                _user.server.server_timestamp_usec = response.server.server_timestamp_usec;
+                _user.server.timestamp_usec = response.server.timestamp_usec;
 
                 // User is Server
                 if (response.is_ref === true) {
@@ -46,7 +37,7 @@ EL.initPage.okBtn.addEventListener("click", async () => {
                     showSettingServerContent();
 
                     let startTime = calculateStartTimeUsec(
-                        _user.server_timestamp_usec,
+                        _user.timestamp_usec,
                         30,
                         getEpochUsec()
                     );
@@ -63,7 +54,7 @@ EL.initPage.okBtn.addEventListener("click", async () => {
                         showSettingClientContent();
                         
                         let startTime = calculateStartTimeUsec(
-                            _user.server.server_timestamp_usec,
+                            _user.server.timestamp_usec,
                             30,
                             getEpochUsec()
                         );
@@ -90,17 +81,18 @@ EL.initPage.okBtn.addEventListener("click", async () => {
     }
 });
 
+// Setup/Server Save Reference
 EL.setupTab.server.setReferenceBtn.addEventListener("click", async () => {
     let ts = getEpochUsec();
     try {
         const response = await postJson(API_SET_AS_SERVER, {
             sync_id: _user.sync_id,
             client_id: _user.client_id,
-            server_timestamp_usec: ts
+            timestamp_usec: ts
         });
         if (response.success === true) {
             log(`Room: ${_user.sync_id}, timestamp: ${ts}`);
-            requestAnimationFrame(animate);
+            _metronomeServer.start(ts);
         } else {
             log(`Error: ${JSON.stringify(response)}`);
         }
@@ -109,13 +101,14 @@ EL.setupTab.server.setReferenceBtn.addEventListener("click", async () => {
     }
 });
 
+// Setup/Client Save Offset
 EL.setupTab.client.saveOffsetBtn.addEventListener("click", async () => {
 
     try {
         const response = await postJson(API_SAVE_CLIENT_OFFSET, {
             sync_id: _user.sync_id,
             client_id: _user.client_id,
-            offset_usec: _customOffsetUsec
+            offset_usec: _metronomeClient.getOffset()
         });
         console.log(response);
         if (response.success === true) {
@@ -128,14 +121,15 @@ EL.setupTab.client.saveOffsetBtn.addEventListener("click", async () => {
     }
 });
 
-function generateClientId() {
-    let id = localStorage.getItem('cs_clientId');
-    if (!id) {
-        id = 'c_' + Math.random().toString(36).slice(2, 10);
-        localStorage.setItem('cs_clientId', clientId);
-    }
-    setClientId(id);
-}
+// Setup/Client offset +/-
+EL.setupTab.client.offsetAdjustPills.forEach(btn => {
+    btn.addEventListener('click', () => {
+        
+        _metronomeClient.setOffset(_metronomeClient.getOffset() + parseInt(btn.dataset.delta));
+        EL.header.offsetLabel.textContent = _metronomeClient.getOffset();
+
+    });
+});
 
 function setClientId(value) {
     _user.client_id = value;
@@ -147,29 +141,29 @@ function setSyncId(value) {
     EL.header.syncIdLabel.textContent = value;
 }
 
+function setUserRole(value) {
+    _user.is_ref = value;
+    EL.header.roleLabel.textContent = value === true ? "Server" : "Client";
+}
 
+function setUserOffset(value) {
+    _user.offset_usec = value;
+    EL.header.offsetLabel.textContent = formatUsecToSec(value);
+}
 
-
-
-
-
-
-
-
+function generateClientId() {
+    let id = localStorage.getItem('cs_clientId');
+    if (!id) {
+        id = 'c_' + Math.random().toString(36).slice(2, 10);
+        localStorage.setItem('cs_clientId', clientId);
+    }
+    setClientId(id);
+}
 
 function getEpochUsec() {
     const ms = performance.timeOrigin + performance.now();
     return Math.round(ms * 1000);
 }
-
-document.querySelectorAll('.pill-buttons button').forEach(btn => {
-    btn.addEventListener('click', () => {
-        
-        _metronomeClient.setOffset(_metronomeClient.getOffset() + parseInt(btn.dataset.delta));
-        EL.header.offsetLabel.textContent = _metronomeClient.getOffset();
-
-    });
-});
 
 function formatUsecToSec(usec) {
     const seconds = usec / 1_000_000;

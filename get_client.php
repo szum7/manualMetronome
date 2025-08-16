@@ -34,12 +34,12 @@ if (count($rows) > 0) {
         "found" => true,
         "sync_id" => $sync_id,
         "client_id" => $client_id,
-        "server_timestamp_usec" => $rows[0]["server_timestamp_usec"],
+        "timestamp_usec" => $rows[0]["timestamp_usec"],
         "is_ref" => $rows[0]["is_ref"] === 1 ? true : false,
         "offset_usec" => $rows[0]["offset_usec"],
         "server" => [
             "client_id" => null,
-            "server_timestamp_usec" => null
+            "timestamp_usec" => null
         ]
     ];
 
@@ -63,7 +63,7 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 if (count($rows) > 0) {
 
     $ret["server"]["client_id"] = $rows[0]["client_id"];
-    $ret["server"]["server_timestamp_usec"] = $rows[0]["server_timestamp_usec"];
+    $ret["server"]["timestamp_usec"] = $rows[0]["timestamp_usec"];
 
 }
 
