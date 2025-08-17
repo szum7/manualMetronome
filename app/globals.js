@@ -2,6 +2,7 @@
 const API_GET_USER = "get_user.php";
 const API_SET_AS_SERVER = "save_as_server.php";
 const API_SAVE_CLIENT_OFFSET = "save_user_offset.php";
+const API_DELETE_USER = "delete_user.php";
 
 // Elements
 const EL = {
@@ -55,6 +56,7 @@ const EL = {
             "blinker": document.getElementById("clientBlinker"),
             "saveOffsetBtn": document.getElementById("saveOffsetBtn"),
             "tryAgainBtn": document.getElementById("tryAgainBtn"),
+            "offsetLabel": document.getElementById("bottomOffsetLabel"),
             "offsetAdjustPills": document.querySelectorAll('.pill-buttons button'),
         }
     },

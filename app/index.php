@@ -137,7 +137,7 @@
                         <button data-delta="-10000">-10</button>
                         <button data-delta="-100000">-100</button>
                     </div>
-                    <div>Offset: <span id="offset-label">0</span> s</div>
+                    <div>Offset: <span id="bottomOffsetLabel">0</span> s</div>
                     <button id="saveOffsetBtn">Save Offset</button>
                 </div>
 

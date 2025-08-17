@@ -68,7 +68,26 @@ EL.initPage.continueBtn.addEventListener("click", async () => {
 });
 
 EL.knownUserPage.resetBtn.addEventListener("click", async () => {
-    
+    try {
+
+        const response = await postJsonAsync(API_DELETE_USER, {
+            room_id: _user.room_id,
+            user_id: _user.user_id
+        });
+
+        console.log(response);
+
+        if (isSuccessfulCall(response)) {
+
+            hideAllPage();
+            show(EL.chooseTypePage.page);
+            
+        } else {
+            log(`Error: ${JSON.stringify(response)}`);
+        }
+    } catch (e) {
+        log('Network error: ' + e.message);
+    }
 });
 
 EL.knownUserPage.continueBtn.addEventListener("click", async () => {
@@ -100,10 +119,13 @@ EL.knownUserPage.continueBtn.addEventListener("click", async () => {
         // Server found
         if (isServerSet === true || data.result === true) {
 
-            _user.server.user_id = data.response.server.user_id;
-            _user.server.timestamp_usec = data.response.server.timestamp_usec;
+            if (data) {
+                _user.server.user_id = data.response.server.user_id;
+                _user.server.timestamp_usec = data.response.server.timestamp_usec;
+            }
 
             hideAllPage();
+            show(EL.mainApp.page);
             show(EL.setupTab.client.content);
 
             let startTime = calculateStartTimeUsec(
@@ -112,7 +134,7 @@ EL.knownUserPage.continueBtn.addEventListener("click", async () => {
                 getEpochUsec(),
                 _user.offset_usec // TODO test needed? Works?
             );
-            _metronomeServer.start(startTime);
+            _metronomeClient.start(startTime);
 
             EL.mainApp.tabMetronome.click();
 
@@ -168,11 +190,22 @@ EL.chooseTypePage.continueBtn.addEventListener("click", async () => {
         // Server found
         if (isServerSet === true || data.result === true) {
 
-            _user.server.user_id = data.response.server.user_id;
-            _user.server.timestamp_usec = data.response.server.timestamp_usec;
+            if (data) {
+                _user.server.user_id = data.response.server.user_id;
+                _user.server.timestamp_usec = data.response.server.timestamp_usec;
+            }
 
             show(EL.mainApp.page);
             show(EL.setupTab.client.content);
+
+            let startTime = calculateStartTimeUsec(
+                _user.server.timestamp_usec,
+                30,
+                getEpochUsec(),
+                _user.offset_usec // TODO test needed? Works?
+            );
+            _metronomeClient.start(startTime);
+            _metronomeClient.unmute();
         } 
         // No server found
         else {
@@ -240,8 +273,6 @@ async function checkForServerInRoom() {
 
         if (response.success === true) {
 
-            log(response);
-
             if (response.server.user_id === null) {
                 return { result: false, response: null };
             }
@@ -255,7 +286,7 @@ async function checkForServerInRoom() {
     } catch (e) {
         log('Network error: ' + e.message);
     } 
-    
+
     return { result: false, response: null };
 }
 
@@ -269,8 +300,18 @@ EL.waitForServerPage.checkBtn.addEventListener("click", async () => {
         _user.server.user_id = data.response.server.user_id;
         _user.server.timestamp_usec = data.response.server.timestamp_usec;
 
+        hideAllPage();
         show(EL.mainApp.page);
         show(EL.setupTab.client.content);
+
+        let startTime = calculateStartTimeUsec(
+            _user.server.timestamp_usec,
+            30,
+            getEpochUsec(),
+            _user.offset_usec // TODO test needed? Works?
+        );
+        _metronomeClient.start(startTime);
+        _metronomeClient.unmute();
 
     }
 });
@@ -296,7 +337,7 @@ EL.setupTab.client.offsetAdjustPills.forEach(btn => {
     btn.addEventListener('click', () => {
 
         _metronomeClient.setOffset(_metronomeClient.getOffset() + parseInt(btn.dataset.delta));
-        EL.header.offsetLabel.textContent = _metronomeClient.getOffset();
+        EL.setupTab.client.offsetLabel.textContent = formatUsecToSec(_metronomeClient.getOffset());
 
     });
 });
