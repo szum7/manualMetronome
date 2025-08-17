@@ -38,7 +38,7 @@
     </header>
 
 
-    
+
 
     <!-- Page: Enter Room -->
     <div id="initPage" class="full-page-center hidable">
@@ -145,7 +145,23 @@
 
             <!-- Metronome Tab -->
             <section id="metronomeTab" class="tab-content">
-                <!-- Empty for now -->
+
+                <div>
+                    <button id="setMetronomeBtn">Set</button>
+                    <input type="number" id="bpm" value="120" />
+                </div>
+
+                <button id="startMetronome">Join</button>
+                <button id="stopMetronome">Stop</button>
+
+                <div id="metronome-circles">
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                </div>
+
+                <p><span id="roomBpm">?</span> bpm</p>
             </section>
         </main>
 
@@ -154,9 +170,15 @@
     </div>
 
     <script src="metronome.js"></script>
+    <script src="metronome4.js"></script>
     <script src="globals.js"></script>
     <script src="content.js"></script>
     <script src="script.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+        eruda.init();
+    </script>
 </body>
 
 </html>

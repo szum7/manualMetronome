@@ -32,11 +32,11 @@ if (count($rows) > 0) {
     $ret = [
         "success" => true,
         "found" => true,
-        "room_id" => $room_id,
+        "room_id" => intval($room_id),
         "user_id" => $user_id,
-        "timestamp_usec" => $rows[0]["timestamp_usec"],
-        "is_ref" => $rows[0]["is_ref"] === 1 ? true : false,
-        "offset_usec" => $rows[0]["offset_usec"],
+        "timestamp_usec" => intval($rows[0]["timestamp_usec"]),
+        "is_ref" => (bool)$rows[0]["is_ref"],
+        "offset_usec" => intval($rows[0]["offset_usec"]),
         "server" => [
             "user_id" => null,
             "timestamp_usec" => null
@@ -48,7 +48,7 @@ if (count($rows) > 0) {
     $ret = [
         "success" => true,
         "found" => false,
-        "room_id" => $room_id,
+        "room_id" => intval($room_id),
         "user_id" => $user_id,
         "server" => [
             "user_id" => null,
@@ -69,7 +69,7 @@ $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 if (count($rows) > 0) {
 
     $ret["server"]["user_id"] = $rows[0]["user_id"];
-    $ret["server"]["timestamp_usec"] = $rows[0]["timestamp_usec"];
+    $ret["server"]["timestamp_usec"] = intval($rows[0]["timestamp_usec"]);
 
 }
 

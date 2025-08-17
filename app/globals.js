@@ -3,6 +3,8 @@ const API_GET_USER = "get_user.php";
 const API_SET_AS_SERVER = "save_as_server.php";
 const API_SAVE_CLIENT_OFFSET = "save_user_offset.php";
 const API_DELETE_USER = "delete_user.php";
+const API_GET_METRONOME = "get_metronome.php";
+const API_SET_METRONOME = "set_metronome.php";
 
 // Elements
 const EL = {
@@ -64,8 +66,9 @@ const EL = {
 };
 
 // Globals
-let _metronomeServer = new Metronome(EL.setupTab.server.blinker, 30, EL.header.pitchSelect.value, EL.header.typeSelect.value);
-let _metronomeClient = new Metronome(EL.setupTab.client.blinker, 30, EL.header.pitchSelect.value, EL.header.typeSelect.value);
+let _metronomeServer = new Metronome(EL.setupTab.server.blinker, 30, parseInt(EL.header.pitchSelect.value), EL.header.typeSelect.value);
+let _metronomeClient = new Metronome(EL.setupTab.client.blinker, 30, parseInt(EL.header.pitchSelect.value), EL.header.typeSelect.value);
+let _metronome = new Metronome4("metronome-circles", parseInt(EL.header.pitchSelect.value), EL.header.typeSelect.value);
 let _user = {
     "room_id": null,
     "user_id": null,

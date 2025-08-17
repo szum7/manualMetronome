@@ -23,34 +23,96 @@ function hideAllPage() {
     document.querySelectorAll(".hidable").forEach(b => hide(b));
 }
 
-EL.header.refreshBtn.addEventListener("click", () => {
-    window.location.reload();
-});
+document.getElementById("setMetronomeBtn").addEventListener("click", async () => {
 
-// Init page: Set Room ID
-EL.initPage.continueBtn.addEventListener("click", async () => {
-
-    setRoomId(EL.initPage.roomIdInput.value.trim());
+    let bpm = parseInt(document.getElementById("bpm").value);
 
     try {
 
-        const response = await postJsonAsync(API_GET_USER, {
+        let response = await postJsonAsync(API_SET_METRONOME, {
+            room_id: _user.room_id,
+            user_id: _user.user_id,
+            bpm: bpm
+        });
+
+        console.log(response);
+
+        if (response.success === true) {
+
+            log(`${_user.room_id} => ${bpm} bpm`);
+
+        } else {
+            log(`Error: ${JSON.stringify(response)}`);
+        }
+    } catch (e) {
+        log('Network error: ' + e.message);
+    }
+});
+document.getElementById("startMetronome").addEventListener("click", async () => {
+    try {
+
+        let response = await postJsonAsync(API_GET_METRONOME, {
             room_id: _user.room_id,
             user_id: _user.user_id
         });
 
         console.log(response);
 
-        if (isSuccessfulCall(response)) {
+        if (response.success === true) {
+
+            if (response.found1 === true && response.found3 === true && response.found3 === true) {
+
+                document.getElementById("roomBpm").textContent = response.bpm;
+
+                let startTime = calculateStartTimeUsec2(
+                    response.ref_start_usec,
+                    response.bpm,
+                    getEpochUsec(),
+                    response.offset,
+                    4
+                );
+                _metronome.start(startTime, response.bpm);
+
+            } else {
+                log(`Cannot start metronome.`);
+            }
+
+        } else {
+            log(`Error: ${JSON.stringify(response)}`);
+        }
+    } catch (e) {
+        log('Network error: ' + e.message);
+    }
+});
+document.getElementById("stopMetronome").addEventListener("click", () => {
+    _metronome.stop();
+});
+
+EL.header.refreshBtn.addEventListener("click", () => {
+    window.location.reload();
+});
+
+// Init page: Set Room ID
+EL.initPage.continueBtn.addEventListener("click", async () => {
+    try {
+
+        setRoomId(EL.initPage.roomIdInput.value.trim());
+
+        let response = await postJsonAsync(API_GET_USER, {
+            room_id: _user.room_id,
+            user_id: _user.user_id
+        });
+
+        console.log(response);
+        
+        if (response.success === true) {
 
             if (isUserNew(response)) { // User's first time in the room
 
                 hideAllPage();
                 show(EL.chooseTypePage.page);
 
-            }
-            // User has already been in the room
-            else {
+            } else { // User has already been in the room
 
                 setUserFull(response);
 
@@ -59,11 +121,14 @@ EL.initPage.continueBtn.addEventListener("click", async () => {
                 EL.knownUserPage.ufpTypeLabel.textContent = _user.is_ref ? "server" : "client";
 
             }
+
         } else {
             log(`Error: ${JSON.stringify(response)}`);
         }
+
     } catch (e) {
         log('Network error: ' + e.message);
+        return;
     }
 });
 
@@ -81,7 +146,7 @@ EL.knownUserPage.resetBtn.addEventListener("click", async () => {
 
             hideAllPage();
             show(EL.chooseTypePage.page);
-            
+
         } else {
             log(`Error: ${JSON.stringify(response)}`);
         }
@@ -104,7 +169,7 @@ EL.knownUserPage.continueBtn.addEventListener("click", async () => {
             getEpochUsec()
         );
         _metronomeServer.start(startTime);
-        
+
         EL.mainApp.tabMetronome.click(); // Set to the Metronome tab
 
     } else { // Client
@@ -138,7 +203,7 @@ EL.knownUserPage.continueBtn.addEventListener("click", async () => {
 
             EL.mainApp.tabMetronome.click();
 
-        } 
+        }
         // No server found
         else {
 
@@ -199,14 +264,21 @@ EL.chooseTypePage.continueBtn.addEventListener("click", async () => {
             show(EL.setupTab.client.content);
 
             let startTime = calculateStartTimeUsec(
-                _user.server.timestamp_usec,
+                parseInt(_user.server.timestamp_usec),
                 30,
                 getEpochUsec(),
-                _user.offset_usec // TODO test needed? Works?
+                0 // TODO test needed? Works?
             );
+
+            console.log(_user.server.timestamp_usec);
+            console.log(getEpochUsec());
+            console.log(_user.offset_usec);
+            console.log(startTime);
+
             _metronomeClient.start(startTime);
+            //_metronomeClient.startNow();
             _metronomeClient.unmute();
-        } 
+        }
         // No server found
         else {
             show(EL.waitForServerPage.page);
@@ -285,7 +357,7 @@ async function checkForServerInRoom() {
 
     } catch (e) {
         log('Network error: ' + e.message);
-    } 
+    }
 
     return { result: false, response: null };
 }
@@ -348,6 +420,7 @@ function setUserId(value) {
 }
 
 function setRoomId(value) {
+    value = parseInt(value);
     _user.room_id = value;
     EL.header.roomIdLabel.textContent = value;
 }
@@ -379,6 +452,36 @@ function getEpochUsec() {
 function formatUsecToSec(usec) {
     const seconds = usec / 1_000_000;
     return seconds.toFixed(3).padStart(6, '0'); // ensures 00.000 style
+}
+
+async function postJsonAsyncTODO(url, payload) {
+    try {
+
+        console.log(payload);
+
+        const r = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        let response = r.json();
+
+        console.log(response);
+
+        if (response.success === true) {
+
+            return response;
+
+        } else {
+            log(`Error: ${JSON.stringify(response)}`);
+            console.error(response);
+        }
+    } catch (e) {
+        log('Network error: ' + e.message);
+        console.error(response);
+    }
 }
 
 async function postJsonAsync(url, payload) {
@@ -414,8 +517,9 @@ function log(message) {
     EL.console.scrollTop = EL.console.scrollHeight;
 }
 
+// TODO offsetUsec doesn't make sense i think and can be removed
+
 function calculateStartTimeUsec(referenceStartUsec, bpm, nowUsec, offsetUsec = 0) {
-    // TODO offsetUsec doesn't make sense i think and can be removed
     const beatPeriodUsec = (60 / bpm) * 1_000_000;
     const adjustedStart = referenceStartUsec + offsetUsec;
     const elapsed = nowUsec - adjustedStart;
@@ -427,4 +531,23 @@ function calculateStartTimeUsec(referenceStartUsec, bpm, nowUsec, offsetUsec = 0
 
     const beatsElapsed = Math.floor(elapsed / beatPeriodUsec);
     return adjustedStart + (beatsElapsed + 1) * beatPeriodUsec;
+}
+
+function calculateStartTimeUsec2(referenceStartUsec, bpm, nowUsec, offsetUsec = 0, beatsPerMeasure = 4) {
+    const beatPeriodUsec = (60 / bpm) * 1_000_000;
+    const measurePeriodUsec = beatsPerMeasure * beatPeriodUsec;
+
+    const adjustedStart = referenceStartUsec + offsetUsec;
+    const elapsed = nowUsec - adjustedStart;
+
+    if (elapsed < 0) {
+        // The start is still in the future
+        return adjustedStart;
+    }
+
+    // How many full measures have elapsed since adjustedStart
+    const measuresElapsed = Math.floor(elapsed / measurePeriodUsec);
+
+    // The start time of the NEXT measure (so "one" hits correctly)
+    return adjustedStart + (measuresElapsed + 1) * measurePeriodUsec;
 }

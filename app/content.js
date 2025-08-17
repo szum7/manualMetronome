@@ -27,13 +27,15 @@ EL.setupTab.client.circle.addEventListener('click', () => {
 });
 
 EL.header.pitchSelect.addEventListener("change", () => {
-    _metronomeServer.setTickPitch(EL.header.pitchSelect.value);
-    _metronomeClient.setTickPitch(EL.header.pitchSelect.value);
+    _metronomeServer.setTickPitch(parseInt(EL.header.pitchSelect.value));
+    _metronomeClient.setTickPitch(parseInt(EL.header.pitchSelect.value));
+    _metronome.setTickPitch(parseInt(EL.header.pitchSelect.value));
 });
 
 EL.header.typeSelect.addEventListener("change", () => {
     _metronomeServer.setTickType(EL.header.typeSelect.value);
     _metronomeClient.setTickType(EL.header.typeSelect.value);
+    _metronome.setTickType(EL.header.typeSelect.value);
 });
 
 function hide(el) { el.classList.toggle('hidden', true); }
