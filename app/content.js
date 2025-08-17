@@ -13,7 +13,7 @@ EL.chooseTypePage.scToggle.addEventListener('change', () => {
     _metronomeClient.mute();
 });
 
-EL.header.changeSyncIdBtn.addEventListener("click", () => {
+EL.header.changeRoomIdBtn.addEventListener("click", () => {
     hide(EL.mainApp.page);
     show(EL.initPage.page);
 });

@@ -1,23 +1,23 @@
 // RUN
-generateClientId();
+generateUserId();
 
 // Functions
-function setClientId(value) {
-    _user.client_id = value;
-    EL.header.clientIdLabel.textContent = value;
+function setUserId(value) {
+    _user.user_id = value;
+    EL.header.userIdLabel.textContent = value;
 }
 
-function updateClient(response) {
+function updateUser(response) {
     setUserRole(response.is_ref);
     setUserOffset(response.offset_usec);
-    _user.server.client_id = response.server.client_id;
+    _user.server.user_id = response.server.user_id;
     _user.server.timestamp_usec = response.server.timestamp_usec;
 }
 
 function isSuccessfulCall(response) { return response.success === true; }
 function isUserNew(response) { return response.found !== true; }
-function isServerSet(response) { return !!response.server.client_id; }
-function isServerSetNow() { return !!_user.server.client_id; }
+function isServerSet(response) { return !!response.server.user_id; }
+function isServerSetLocally() { return !!_user.server.user_id; }
 
 function hideAllPage() {
     document.querySelectorAll(".hidable").forEach(b => hide(b));
@@ -27,23 +27,21 @@ EL.header.refreshBtn.addEventListener("click", () => {
     window.location.reload();
 });
 
-// Init page: Set Sync ID
+// Init page: Set Room ID
 EL.initPage.continueBtn.addEventListener("click", async () => {
 
-    setSyncId(EL.initPage.syncIdInput.value.trim());
+    setRoomId(EL.initPage.roomIdInput.value.trim());
 
     try {
 
-        const response = await postJsonAsync(API_GET_CLIENT, {
-            sync_id: _user.sync_id,
-            client_id: _user.client_id
+        const response = await postJsonAsync(API_GET_USER, {
+            room_id: _user.room_id,
+            user_id: _user.user_id
         });
 
         console.log(response);
 
         if (isSuccessfulCall(response)) {
-
-            setUserFull(response);
 
             if (isUserNew(response)) { // User's first time in the room
 
@@ -53,6 +51,8 @@ EL.initPage.continueBtn.addEventListener("click", async () => {
             }
             // User has already been in the room
             else {
+
+                setUserFull(response);
 
                 hideAllPage();
                 show(EL.knownUserPage.page);
@@ -67,9 +67,13 @@ EL.initPage.continueBtn.addEventListener("click", async () => {
     }
 });
 
+EL.knownUserPage.resetBtn.addEventListener("click", async () => {
+    
+});
+
 EL.knownUserPage.continueBtn.addEventListener("click", async () => {
 
-    if (_client.is_ref === true) { // Server
+    if (_user.is_ref === true) { // Server
 
         hideAllPage();
         show(EL.mainApp.page);
@@ -81,21 +85,23 @@ EL.knownUserPage.continueBtn.addEventListener("click", async () => {
             getEpochUsec()
         );
         _metronomeServer.start(startTime);
-        //_metronomeServer.unmute();
         
         EL.mainApp.tabMetronome.click(); // Set to the Metronome tab
 
     } else { // Client
 
-        let isServer = isServerSetNow();
+        let isServerSet = isServerSetLocally();
         let data;
 
-        if (!isServer) {
+        if (!isServerSet) {
             data = await checkForServerInRoom();
         }
 
         // Server found
-        if (isServer === true || data.result === true) {
+        if (isServerSet === true || data.result === true) {
+
+            _user.server.user_id = data.response.server.user_id;
+            _user.server.timestamp_usec = data.response.server.timestamp_usec;
 
             hideAllPage();
             show(EL.setupTab.client.content);
@@ -134,12 +140,12 @@ function goTo(page) {
 }
 
 function setUserFull(r) {
-    _user.sync_id = r.sync_id;
-    _user.client_id = r.client_id;
+    _user.room_id = r.room_id;
+    _user.user_id = r.user_id;
     _user.offset_usec = r.offset_usec;
     _user.timestamp_usec = r.timestamp_usec;
     _user.is_ref = r.is_ref;
-    _user.server.client_id = r.server.client_id;
+    _user.server.user_id = r.server.user_id;
     _user.server.timestamp_usec = r.server.timestamp_usec;
 }
 
@@ -151,16 +157,20 @@ EL.chooseTypePage.continueBtn.addEventListener("click", async () => {
 
         hideAllPage();
 
-        let isServer = isServerSetNow();
+        let isServerSet = isServerSetLocally();
         let data;
 
-        if (!isServer) {
+        if (!isServerSet) {
             data = await checkForServerInRoom();
             console.log(data);
         }
 
         // Server found
-        if (isServer === true || data.result === true) {
+        if (isServerSet === true || data.result === true) {
+
+            _user.server.user_id = data.response.server.user_id;
+            _user.server.timestamp_usec = data.response.server.timestamp_usec;
+
             show(EL.mainApp.page);
             show(EL.setupTab.client.content);
         } 
@@ -186,8 +196,8 @@ EL.chooseTypePage.continueBtn.addEventListener("click", async () => {
 EL.setupTab.server.setReferenceBtn.addEventListener("click", async () => {
     try {
         const response = await postJsonAsync(API_SET_AS_SERVER, {
-            sync_id: _user.sync_id,
-            client_id: _user.client_id,
+            room_id: _user.room_id,
+            user_id: _user.user_id,
             timestamp_usec: _metronomeServer.getStartTimeUsec()
         });
         if (response.success === true) {
@@ -205,8 +215,8 @@ EL.setupTab.client.saveOffsetBtn.addEventListener("click", async () => {
 
     try {
         const response = await postJsonAsync(API_SAVE_CLIENT_OFFSET, {
-            sync_id: _user.sync_id,
-            client_id: _user.client_id,
+            room_id: _user.room_id,
+            user_id: _user.user_id,
             offset_usec: _metronomeClient.getOffset()
         });
         console.log(response);
@@ -223,16 +233,16 @@ EL.setupTab.client.saveOffsetBtn.addEventListener("click", async () => {
 async function checkForServerInRoom() {
     try {
 
-        const response = await postJsonAsync(API_GET_CLIENT, {
-            sync_id: _user.sync_id,
-            client_id: _user.client_id
+        const response = await postJsonAsync(API_GET_USER, {
+            room_id: _user.room_id,
+            user_id: _user.user_id
         });
 
         if (response.success === true) {
 
             log(response);
 
-            if (isUserNew(response)) {
+            if (response.server.user_id === null) {
                 return { result: false, response: null };
             }
 
@@ -244,20 +254,24 @@ async function checkForServerInRoom() {
 
     } catch (e) {
         log('Network error: ' + e.message);
-    } finally {
-        return { result: false, response: null };
-    }
+    } 
+    
+    return { result: false, response: null };
 }
 
-// Setup/Client Try Again
+// Setup/User Try Again
 EL.waitForServerPage.checkBtn.addEventListener("click", async () => {
 
     let data = await checkForServerInRoom();
 
     if (data.result === true) {
-        updateClient(data.response);
+
+        _user.server.user_id = data.response.server.user_id;
+        _user.server.timestamp_usec = data.response.server.timestamp_usec;
+
         show(EL.mainApp.page);
         show(EL.setupTab.client.content);
+
     }
 });
 
@@ -277,7 +291,7 @@ document.getElementById("clearDb").addEventListener("click", async () => {
     }
 });
 
-// Setup/Client offset +/-
+// Setup/User offset +/-
 EL.setupTab.client.offsetAdjustPills.forEach(btn => {
     btn.addEventListener('click', () => {
 
@@ -287,14 +301,14 @@ EL.setupTab.client.offsetAdjustPills.forEach(btn => {
     });
 });
 
-function setClientId(value) {
-    _user.client_id = value;
-    EL.header.clientIdLabel.textContent = value;
+function setUserId(value) {
+    _user.user_id = value;
+    EL.header.userIdLabel.textContent = value;
 }
 
-function setSyncId(value) {
-    _user.sync_id = value;
-    EL.header.syncIdLabel.textContent = value;
+function setRoomId(value) {
+    _user.room_id = value;
+    EL.header.roomIdLabel.textContent = value;
 }
 
 function setUserRole(value) {
@@ -307,13 +321,13 @@ function setUserOffset(value) {
     EL.header.offsetLabel.textContent = formatUsecToSec(value);
 }
 
-function generateClientId() {
+function generateUserId() {
     let id = localStorage.getItem('cs_clientId');
     if (!id) {
         id = 'c_' + Math.random().toString(36).slice(2, 10);
         localStorage.setItem('cs_clientId', id);
     }
-    setClientId(id);
+    setUserId(id);
 }
 
 function getEpochUsec() {
@@ -327,6 +341,7 @@ function formatUsecToSec(usec) {
 }
 
 async function postJsonAsync(url, payload) {
+    console.log(payload);
     const r = await fetch(url, {
         method: 'POST',
         headers: {

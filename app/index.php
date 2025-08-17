@@ -11,9 +11,9 @@
 <body>
     <!-- Header -->
     <header class="top-bar">
-        <div class="field">Client ID: <span id="clientIdLabel"></span></div>
-        <div class="field">Room ID: <span id="syncIdLabel">?</span></div>
-        <button id="changeSyncIdBtn" class="small-btn hidden">Change</button>
+        <div class="field">User ID: <span id="userIdLabel"></span></div>
+        <div class="field">Room ID: <span id="roomIdLabel">?</span></div>
+        <button id="changeRoomIdBtn" class="small-btn hidden">Change</button>
         <div class="field">Role: <span id="roleLabel">?</span></div>
         <div class="field">Offset: <span id="offsetLabel">?</span></div>
         <div class="select-pill">
@@ -43,7 +43,7 @@
     <!-- Page: Enter Room -->
     <div id="initPage" class="full-page-center hidable">
         <h2>Enter Room ID</h2>
-        <input id="initialSyncId" type="text" value="123">
+        <input id="initialRoomId" type="text" value="123">
         <button id="initPageBtn">Continue</button>
     </div>
 

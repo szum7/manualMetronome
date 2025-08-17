@@ -6,7 +6,7 @@ class Metronome {
     #beatPeriodUsec;
     #lastBeatNumber = -1;
     #running = false;
-    #muted = false;
+    #muted = true;
     #audioCtx;
     #tickPitch;
     #tickType;

@@ -4,13 +4,13 @@ require 'config.php';
 $data = json_decode(file_get_contents("php://input"), true);
 
 // Test
-$sync_id = 333;
-$client_id = "c_si68ku17";
+$room_id = 333;
+$user_id = "c_si68ku17";
 
-$sync_id = $data['sync_id'] ?? null;
-$client_id = $data['client_id'] ?? null;
+$room_id = $data['room_id'] ?? null;
+$user_id = $data['user_id'] ?? null;
 
-if (!isset($client_id) || !isset($sync_id)) {
+if (!isset($user_id) || !isset($room_id)) {
     echo json_encode(["error" => "Missing parameters"]);
     exit;
 }
@@ -20,11 +20,11 @@ $ret = [];
 
 $stmt = $pdo->prepare(
     "SELECT *
-    FROM clients 
-    WHERE sync_id = ?
-    AND client_id = ?"
+    FROM users 
+    WHERE room_id = ?
+    AND user_id = ?"
 );
-$stmt->execute([$sync_id, $client_id]);
+$stmt->execute([$room_id, $user_id]);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if (count($rows) > 0) {
@@ -32,24 +32,26 @@ if (count($rows) > 0) {
     $ret = [
         "success" => true,
         "found" => true,
-        "sync_id" => $sync_id,
-        "client_id" => $client_id,
+        "room_id" => $room_id,
+        "user_id" => $user_id,
         "timestamp_usec" => $rows[0]["timestamp_usec"],
         "is_ref" => $rows[0]["is_ref"] === 1 ? true : false,
         "offset_usec" => $rows[0]["offset_usec"],
         "server" => [
-            "client_id" => null,
+            "user_id" => null,
             "timestamp_usec" => null
         ]
     ];
 
-} else {    
+} else { // New user
 
     $ret = [
         "success" => true,
         "found" => false,
+        "room_id" => $room_id,
+        "user_id" => $user_id,
         "server" => [
-            "client_id" => null,
+            "user_id" => null,
             "timestamp_usec" => null
         ]
     ];
@@ -57,16 +59,16 @@ if (count($rows) > 0) {
 
 $stmt = $pdo->prepare(
     "SELECT *
-    FROM clients 
-    WHERE sync_id = ?
+    FROM users 
+    WHERE room_id = ?
     AND is_ref = true"
 );
-$stmt->execute([$sync_id]);
+$stmt->execute([$room_id]);
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 if (count($rows) > 0) {
 
-    $ret["server"]["client_id"] = $rows[0]["client_id"];
+    $ret["server"]["user_id"] = $rows[0]["user_id"];
     $ret["server"]["timestamp_usec"] = $rows[0]["timestamp_usec"];
 
 }
