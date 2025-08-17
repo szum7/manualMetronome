@@ -6,30 +6,11 @@ const API_SAVE_CLIENT_OFFSET = "save_client_offset.php";
 // Elements
 const EL = {
     "initPage": {
-        "page": document.getElementById("initPage"),
+        "page": document.getElementById("syncIdPage"),
         "syncIdInput": document.getElementById("initialSyncId"),
-        "continueBtn": document.getElementById("initPageBtn"),
+        "okBtn": document.getElementById("syncIdPageBtn"),
     },
-    "chooseTypePage": {
-        "page": document.getElementById("chooseTypePage"),
-        "scToggle": document.getElementById("scToggle"),
-        "continueBtn": document.getElementById("chooseTypePageBtn"),
-    },
-    "knownUserPage": {
-        "page": document.getElementById("knownUserPage"),
-        "resetBtn": document.getElementById("kupResetBtn"),
-        "continueBtn": document.getElementById("kupContinueBtn"),
-        "ufpTypeLabel": document.getElementById("ufpType"),
-    },
-    "waitForServerPage": {
-        "page": document.getElementById("waitForServerPage"),
-        "checkBtn": document.getElementById("wfspCheckBtn")
-    },
-    "mainApp": {
-        "page": document.getElementById("mainApp"),
-        "tabSetup": document.getElementById("tabSetup"),
-        "tabMetronome": document.getElementById("tabMetronome"),
-    },
+    "mainApp": document.getElementById("mainApp"),
     "header": {
         "clientIdLabel": document.getElementById("clientIdLabel"),
         "syncIdLabel": document.getElementById("syncIdLabel"),
@@ -38,24 +19,26 @@ const EL = {
         "offsetLabel": document.getElementById("offsetLabel"),
         "pitchSelect": document.getElementById("pitchSelect"),
         "typeSelect": document.getElementById("typeSelect"),
-        "refreshBtn": document.getElementById("refreshPage"),
     },
     "setupTab": {
+        "scToggle": {
+            "toggle": document.getElementById("scToggle"),
+            "contentServer": document.getElementById("contentServer"),
+            "contentClient": document.getElementById("contentClient"),
+        },
         "server": {
-            "content": document.getElementById("contentServer"),
             "setReferenceBtn": document.getElementById("setReferenceBtn"),
             "circle": document.getElementById("serverCircle"),
             "blinker": document.getElementById("serverBlinker"),
         },
         "client": {
-            "content": document.getElementById("contentClient"),
-            // "contentNoRef": document.getElementById("contentClientAlert"),
-            // "contentInner": document.getElementById("contentClientInner"),
             "circle": document.getElementById("clientCircle"),
             "blinker": document.getElementById("clientBlinker"),
             "saveOffsetBtn": document.getElementById("saveOffsetBtn"),
             "tryAgainBtn": document.getElementById("tryAgainBtn"),
             "offsetAdjustPills": document.querySelectorAll('.pill-buttons button'),
+            "contentNoRef": document.getElementById("contentClientAlert"),
+            "content": document.getElementById("contentClientInner"),
         }
     },
     "console": document.getElementById("consoleLog"),

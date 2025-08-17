@@ -33,22 +33,18 @@
                 <option value="sawtooth">Sawtooth</option>
             </select>
         </div>
-        <button id="refreshPage" class="small-btn">Refresh page</button>
         <button id="clearDb" class="small-btn">Clear DB</button>
     </header>
 
-
-    
-
-    <!-- Page: Enter Room -->
-    <div id="initPage" class="full-page-center hidable">
+    <!-- Page -->
+    <div id="syncIdPage" class="full-page-center">
         <h2>Enter Room ID</h2>
         <input id="initialSyncId" type="text" value="123">
-        <button id="initPageBtn">Continue</button>
+        <button id="syncIdPageBtn">Continue</button>
     </div>
 
-    <!-- Page: Choose server-client type -->
-    <div id="chooseTypePage" class="full-page-center hidable hidden">
+    <!-- Page -->
+    <div id="typeSelectPage" class="full-page-center hidden">
         <div class="toggle-wrapper">
             <span>Server</span>
             <label class="switch">
@@ -57,34 +53,23 @@
             </label>
             <span>Client</span>
         </div>
-        <button id="chooseTypePageBtn">Continue</button>
+        <button id="typeSelectPageBtn">Continue</button>
     </div>
 
-    <!-- Page: Known user -->
-    <div id="knownUserPage" class="full-page-center hidable hidden">
-        <p>You're already been to this room as <b><span id="ufpType"></span></b></p>
-        <button id="kupResetBtn">Reset</button>
-        <button id="kupContinueBtn">Continue</button>
+    <!-- Page -->
+    <div id="userFoundPage" class="full-page-center hidden">
+        <p>You're already been to this room as <span id="ufpType"><b></b></span></p>
+        <button id="ufpReset">Reset</button>
+        <button id="ufpContinue">Continue</button>
     </div>
-
-    <!-- Page: No server yet -->
-    <div id="waitForServerPage" class="full-page-center hidable hidden">
-        <p>No server set yet. Wait or check again.</p>
-        <button id="wfspCheckBtn">Check</button>
-    </div>
-
-
-
-
-
 
     <!-- Main App (hidden until proceed) -->
-    <div id="mainApp" class="hidable hidden">
+    <div id="mainApp" class="hidden">
 
         <!-- Tabs -->
         <nav class="tabs">
-            <button id="tabSetup" class="tab-button active" data-tab="setup">Setup</button>
-            <button id="tabMetronome" class="tab-button" data-tab="metronome">Metronome</button>
+            <button class="tab-button active" data-tab="setup">Setup</button>
+            <button class="tab-button" data-tab="metronome">Metronome</button>
         </nav>
 
         <!-- Content Area -->
@@ -92,23 +77,20 @@
             <!-- Setup Tab -->
             <section id="setupTab" class="tab-content active">
 
-                <!-- <div class="toggle-wrapper">
+                <div class="toggle-wrapper">
                     <span>Server</span>
                     <label class="switch">
                         <input type="checkbox" id="scToggle">
                         <span class="slider"></span>
                     </label>
                     <span>Client</span>
-                </div> -->
+                </div>
 
                 <!-- Server -->
-                <div id="contentServer" class="hidable hidden">
+                <div id="contentServer" class="hidden">
                     <div class="">
                         <button id="setReferenceBtn">Set reference point</button>
-                        <ul>
-                            <li>Deletes all users on the Room ID!</li>
-                            <li>Sets the Server.</li>
-                        </ul>
+                        <p>Resets the room!</p>
                         <div id="serverCircle" class="blinker outer">
                             <div id="serverBlinker" class="blinker inner">
                             </div>
@@ -116,29 +98,29 @@
                     </div>
                 </div>
                 <!-- Client -->
-                <div id="contentClient" class="hidable hidden">
+                <div id="contentClient" class="hidden">
                     <!-- Client:Error -->
-                    <!-- <div id="contentClientAlert" class="hidable hidden">
+                    <div id="contentClientAlert" class="hidden">
                         <p>No server is set yet for the current room.</p>
                         <button id="tryAgainBtn">Check again</button>
-                    </div> -->
+                    </div>
                     <!-- Client:Main -->
-                    <!-- <div id="contentClientInner" class="hidable hidden">
-                    </div> -->
-                    <div id="clientCircle" class="blinker outer">
-                        <div id="clientBlinker" class="blinker inner">
+                    <div id="contentClientInner" class="hidden">
+                        <div id="clientCircle" class="blinker outer">
+                            <div id="clientBlinker" class="blinker inner">
+                            </div>
                         </div>
+                        <div class="pill-buttons">
+                            <button data-delta="1000">+1</button>
+                            <button data-delta="10000">+10</button>
+                            <button data-delta="100000">+100</button>
+                            <button data-delta="-1000">-1</button>
+                            <button data-delta="-10000">-10</button>
+                            <button data-delta="-100000">-100</button>
+                        </div>
+                        <div>Offset: <span id="offset-label">0</span> s</div>
+                        <button id="saveOffsetBtn">Save Offset</button>
                     </div>
-                    <div class="pill-buttons">
-                        <button data-delta="1000">+1</button>
-                        <button data-delta="10000">+10</button>
-                        <button data-delta="100000">+100</button>
-                        <button data-delta="-1000">-1</button>
-                        <button data-delta="-10000">-10</button>
-                        <button data-delta="-100000">-100</button>
-                    </div>
-                    <div>Offset: <span id="offset-label">0</span> s</div>
-                    <button id="saveOffsetBtn">Save Offset</button>
                 </div>
 
             </section>

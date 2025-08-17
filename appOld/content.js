@@ -8,13 +8,15 @@ document.querySelectorAll(".tab-button").forEach(btn => {
     });
 });
 
-EL.chooseTypePage.scToggle.addEventListener('change', () => {
+EL.setupTab.scToggle.toggle.addEventListener('change', () => {
+    toggle(EL.setupTab.scToggle.contentServer, EL.setupTab.scToggle.toggle.checked);
+    toggle(EL.setupTab.scToggle.contentClient, !EL.setupTab.scToggle.toggle.checked);
     _metronomeServer.mute();
     _metronomeClient.mute();
 });
 
 EL.header.changeSyncIdBtn.addEventListener("click", () => {
-    hide(EL.mainApp.page);
+    hide(EL.mainApp);
     show(EL.initPage.page);
 });
 
@@ -35,6 +37,18 @@ EL.header.typeSelect.addEventListener("change", () => {
     _metronomeServer.setTickType(EL.header.typeSelect.value);
     _metronomeClient.setTickType(EL.header.typeSelect.value);
 });
+
+function showSettingServerContent() {
+    EL.setupTab.scToggle.toggle.checked = false;
+    hide(EL.setupTab.scToggle.contentClient);
+    show(EL.setupTab.scToggle.contentServer);
+}
+
+function showSettingClientContent() {
+    EL.setupTab.scToggle.toggle.checked = true;
+    hide(EL.setupTab.scToggle.contentServer);
+    show(EL.setupTab.scToggle.contentClient);
+}
 
 function hide(el) { el.classList.toggle('hidden', true); }
 function show(el) { el.classList.toggle('hidden', false); }

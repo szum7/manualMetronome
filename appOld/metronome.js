@@ -33,10 +33,6 @@ class Metronome {
         requestAnimationFrame(() => this.#animate());
     }
 
-    startNow() {
-        this.start(this.#getEpochUsec());
-    }
-
     stop() {
         this.#running = false;
     }
@@ -59,8 +55,9 @@ class Metronome {
     }
 
     // Getters
-    getOffset() { return this.#offsetUsec; }
-    getStartTimeUsec() { return this.#startTimeUsec; }
+    getOffset() {
+        return this.#offsetUsec;
+    }
     
     // Private methods
     #getEpochUsec() {
