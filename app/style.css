@@ -283,3 +283,33 @@ input:checked+.slider:before {
     background: blue;
     /* first beat distinct */
 }
+
+/* Clocks */
+.clock-column {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+}
+
+.clock-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.clock-label {
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.clock-display {
+    font-family: ui-monospace, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+    padding: 4px 6px;
+    border-radius: 4px;
+    min-width: 140px;
+    text-align: right;
+}

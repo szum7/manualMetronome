@@ -2,27 +2,6 @@
 generateUserId();
 
 // Functions
-function setUserId(value) {
-    _user.user_id = value;
-    EL.header.userIdLabel.textContent = value;
-}
-
-function updateUser(response) {
-    setUserRole(response.is_ref);
-    setUserOffset(response.offset_usec);
-    _user.server.user_id = response.server.user_id;
-    _user.server.timestamp_usec = response.server.timestamp_usec;
-}
-
-function isSuccessfulCall(response) { return response.success === true; }
-function isUserNew(response) { return response.found !== true; }
-function isServerSet(response) { return !!response.server.user_id; }
-function isServerSetLocally() { return !!_user.server.user_id; }
-
-function hideAllPage() {
-    document.querySelectorAll(".hidable").forEach(b => hide(b));
-}
-
 document.getElementById("setMetronomeBtn").addEventListener("click", async () => {
 
     let bpm = parseInt(document.getElementById("bpm").value);
@@ -48,6 +27,7 @@ document.getElementById("setMetronomeBtn").addEventListener("click", async () =>
         log('Network error: ' + e.message);
     }
 });
+
 document.getElementById("startMetronome").addEventListener("click", async () => {
     try {
 
@@ -66,7 +46,7 @@ document.getElementById("startMetronome").addEventListener("click", async () => 
 
                 let startTime = calculateStartTimeUsec2(
                     response.ref_start_usec,
-                    response.bpm,
+                    30,
                     getEpochUsec(),
                     response.offset,
                     4
@@ -84,12 +64,9 @@ document.getElementById("startMetronome").addEventListener("click", async () => 
         log('Network error: ' + e.message);
     }
 });
+
 document.getElementById("stopMetronome").addEventListener("click", () => {
     _metronome.stop();
-});
-
-EL.header.refreshBtn.addEventListener("click", () => {
-    window.location.reload();
 });
 
 // Init page: Set Room ID
@@ -164,7 +141,7 @@ EL.knownUserPage.continueBtn.addEventListener("click", async () => {
         show(EL.setupTab.server.content);
 
         let startTime = calculateStartTimeUsec(
-            _user.timestamp_usec,
+            parseInt(_user.timestamp_usec),
             30,
             getEpochUsec()
         );
@@ -194,7 +171,7 @@ EL.knownUserPage.continueBtn.addEventListener("click", async () => {
             show(EL.setupTab.client.content);
 
             let startTime = calculateStartTimeUsec(
-                _user.server.timestamp_usec,
+                parseInt(_user.server.timestamp_usec),
                 30,
                 getEpochUsec(),
                 _user.offset_usec // TODO test needed? Works?
@@ -212,29 +189,6 @@ EL.knownUserPage.continueBtn.addEventListener("click", async () => {
         }
     }
 });
-
-function goTo(page) {
-    if (page === "known_user") {
-
-    } else if (page === "choose_type") {
-
-    } else if (page === "wait_for_server_page") {
-        hideAllPage();
-        show(EL.waitForServerPage.page);
-    } else if (page === "") {
-
-    }
-}
-
-function setUserFull(r) {
-    _user.room_id = r.room_id;
-    _user.user_id = r.user_id;
-    _user.offset_usec = r.offset_usec;
-    _user.timestamp_usec = r.timestamp_usec;
-    _user.is_ref = r.is_ref;
-    _user.server.user_id = r.server.user_id;
-    _user.server.timestamp_usec = r.server.timestamp_usec;
-}
 
 EL.chooseTypePage.continueBtn.addEventListener("click", async () => {
 
@@ -334,6 +288,33 @@ EL.setupTab.client.saveOffsetBtn.addEventListener("click", async () => {
         log('Network error: ' + e.message);
     }
 });
+
+EL.header.refreshBtn.addEventListener("click", () => {
+    window.location.reload();
+});
+
+function goTo(page) {
+    if (page === "known_user") {
+
+    } else if (page === "choose_type") {
+
+    } else if (page === "wait_for_server_page") {
+        hideAllPage();
+        show(EL.waitForServerPage.page);
+    } else if (page === "") {
+
+    }
+}
+
+function setUserFull(r) {
+    _user.room_id = r.room_id;
+    _user.user_id = r.user_id;
+    _user.offset_usec = r.offset_usec;
+    _user.timestamp_usec = r.timestamp_usec;
+    _user.is_ref = r.is_ref;
+    _user.server.user_id = r.server.user_id;
+    _user.server.timestamp_usec = r.server.timestamp_usec;
+}
 
 async function checkForServerInRoom() {
     try {
@@ -550,4 +531,54 @@ function calculateStartTimeUsec2(referenceStartUsec, bpm, nowUsec, offsetUsec = 
 
     // The start time of the NEXT measure (so "one" hits correctly)
     return adjustedStart + (measuresElapsed + 1) * measurePeriodUsec;
+}
+
+
+function setUserId(value) {
+    _user.user_id = value;
+    EL.header.userIdLabel.textContent = value;
+}
+
+function updateUser(response) {
+    setUserRole(response.is_ref);
+    setUserOffset(response.offset_usec);
+    _user.server.user_id = response.server.user_id;
+    _user.server.timestamp_usec = response.server.timestamp_usec;
+}
+
+function isSuccessfulCall(response) { return response.success === true; }
+function isUserNew(response) { return response.found !== true; }
+function isServerSet(response) { return !!response.server.user_id; }
+function isServerSetLocally() { return !!_user.server.user_id; }
+
+function hideAllPage() {
+    document.querySelectorAll(".hidable").forEach(b => hide(b));
+}
+
+
+const _navTimeOriginUsec = Math.round(performance.timeOrigin * 1000);
+function clientNowUsec() {
+    return _navTimeOriginUsec + Math.round(performance.now() * 1000);
+}
+requestAnimationFrame(rafTick);
+function rafTick() {
+    const now_usecs = clientNowUsec();
+    document.getElementById('unadj').textContent = formatUsec(now_usecs);
+    if (_user.offset_usec !== null && _user.offset_usec > 0) {
+        const adj_usecs = now_usecs - _user.offset_usec;
+        document.getElementById('adj').textContent = formatUsec(adj_usecs);
+    } else {
+        document.getElementById('adj').textContent = '--:--:--.------';
+    }
+    requestAnimationFrame(rafTick);
+}
+function formatUsec(usec) {
+    const ms = Math.floor(usec / 1000);
+    const date = new Date(ms);
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    const ss = String(date.getSeconds()).padStart(2, '0');
+    const msec = String(date.getMilliseconds()).padStart(3, '0');
+    const remUsec = String(usec % 1000000).padStart(6, '0');
+    return `${hh}:${mm}:${ss}.${remUsec}`;
 }

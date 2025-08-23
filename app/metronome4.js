@@ -9,10 +9,12 @@ class Metronome4 {
     #rafId;
     #tickPitch;
     #tickType;
+    #volume;
 
     constructor(containerId, tickPitch, tickType) {
         this.#tickPitch = tickPitch;
         this.#tickType = tickType;
+        this.#volume = 0.3;
 
         const container = document.getElementById(containerId);
         if (!container) throw new Error("Container not found");
@@ -47,6 +49,10 @@ class Metronome4 {
 
     setOffsetUsec(offset) {
         this.#startUsec += offset;
+    }
+    
+    setVolume(value) {
+        this.#volume = value;
     }
 
     setTickPitch(value) {
@@ -105,7 +111,7 @@ class Metronome4 {
         osc.type = this.#tickType;
         osc.frequency.value = (beatIndex === 0 ? (this.#tickPitch + 300) : this.#tickPitch);
 
-        let maxVolume = 0.3;
+        let maxVolume = this.#volume;
 
         // Sets the volume
         gainNode.gain.setValueAtTime(maxVolume, this.#audioCtx.currentTime);

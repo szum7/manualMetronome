@@ -10,6 +10,7 @@ class Metronome {
     #audioCtx;
     #tickPitch;
     #tickType;
+    #volume;
 
     // Constructor
     constructor(element, bpm, tickPitch, tickType) {
@@ -20,6 +21,7 @@ class Metronome {
         this.#bpm = bpm;
         this.#tickPitch = tickPitch;
         this.#tickType = tickType;
+        this.#volume = 0.3;
         this.#beatPeriodUsec = (60 / bpm) * 1_000_000;
     }
     
@@ -56,6 +58,10 @@ class Metronome {
     
     setTickType(value) {
         this.#tickType = value;
+    }
+    
+    setVolume(value) {
+        this.#volume = value;
     }
 
     // Getters
@@ -110,7 +116,7 @@ class Metronome {
         osc.type = this.#tickType;
         osc.frequency.value = this.#tickPitch;
 
-        let maxVolume = 0.3;
+        let maxVolume = this.#volume;
 
         // Sets the volume
         gainNode.gain.setValueAtTime(maxVolume, this.#audioCtx.currentTime);

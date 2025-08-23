@@ -26,16 +26,25 @@ EL.setupTab.client.circle.addEventListener('click', () => {
     _metronomeClient.toggleMute();
 });
 
+document.getElementById("volumeSelect").addEventListener('click', () => {
+    let value = parseFloat(document.getElementById("volumeSelect").value);
+    _metronomeServer.setVolume(value);
+    _metronomeClient.setVolume(value);
+    _metronome.setVolume(value);
+});
+
 EL.header.pitchSelect.addEventListener("change", () => {
-    _metronomeServer.setTickPitch(parseInt(EL.header.pitchSelect.value));
-    _metronomeClient.setTickPitch(parseInt(EL.header.pitchSelect.value));
-    _metronome.setTickPitch(parseInt(EL.header.pitchSelect.value));
+    let value = parseInt(EL.header.pitchSelect.value);
+    _metronomeServer.setTickPitch(value);
+    _metronomeClient.setTickPitch(value);
+    _metronome.setTickPitch(value);
 });
 
 EL.header.typeSelect.addEventListener("change", () => {
-    _metronomeServer.setTickType(EL.header.typeSelect.value);
-    _metronomeClient.setTickType(EL.header.typeSelect.value);
-    _metronome.setTickType(EL.header.typeSelect.value);
+    let value = EL.header.typeSelect.value;
+    _metronomeServer.setTickType(value);
+    _metronomeClient.setTickType(value);
+    _metronome.setTickType(value);
 });
 
 function hide(el) { el.classList.toggle('hidden', true); }

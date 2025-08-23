@@ -33,6 +33,19 @@
                 <option value="sawtooth">Sawtooth</option>
             </select>
         </div>
+        <div class="select-pill">
+            <label>Volume</label>
+            <select id="volumeSelect">
+                <option value="0.3">3</option>
+                <option value="0.4">4</option>
+                <option value="0.5">5</option>
+                <option value="0.6">6</option>
+                <option value="0.7">7</option>
+                <option value="0.8">8</option>
+                <option value="0.9">9</option>
+                <option value="1.0">10</option>
+            </select>
+        </div>
         <button id="refreshPage" class="small-btn">Refresh page</button>
         <button id="clearDb" class="small-btn">Clear DB</button>
     </header>
@@ -100,6 +113,16 @@
                     </label>
                     <span>Client</span>
                 </div> -->
+                <div class="clock-column">
+                    <div class="clock-line">
+                        <div class="clock-label">Unadjusted:</div>
+                        <div class="clock-display" id="unadj">--:--:--.------</div>
+                    </div>
+                    <div class="clock-line">
+                        <div class="clock-label">Adjusted:</div>
+                        <div class="clock-display" id="adj">--:--:--.------</div>
+                    </div>
+                </div>
 
                 <!-- Server -->
                 <div id="contentServer" class="hidable hidden">
