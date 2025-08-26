@@ -49,7 +49,7 @@ class Metronome {
 
     // Setters
     setOffset(usec) {
-        this.#offsetUsec = Math.max(0, usec);
+        this.#offsetUsec = usec;
     }
 
     setTickPitch(value) {

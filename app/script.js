@@ -14,8 +14,6 @@ document.getElementById("setMetronomeBtn").addEventListener("click", async () =>
             bpm: bpm
         });
 
-        console.log(response);
-
         if (response.success === true) {
 
             log(`${_user.room_id} => ${bpm} bpm`);
@@ -36,11 +34,11 @@ document.getElementById("startMetronome").addEventListener("click", async () => 
             user_id: _user.user_id
         });
 
-        console.log(response);
-
         if (response.success === true) {
 
-            if (response.found1 === true && response.found3 === true && response.found3 === true) {
+            if (response.found1 === true && 
+                response.found3 === true && 
+                response.found3 === true) {
 
                 document.getElementById("roomBpm").textContent = response.bpm;
 
@@ -79,8 +77,6 @@ EL.initPage.continueBtn.addEventListener("click", async () => {
             room_id: _user.room_id,
             user_id: _user.user_id
         });
-
-        console.log(response);
         
         if (response.success === true) {
 
@@ -116,8 +112,6 @@ EL.knownUserPage.resetBtn.addEventListener("click", async () => {
             room_id: _user.room_id,
             user_id: _user.user_id
         });
-
-        console.log(response);
 
         if (isSuccessfulCall(response)) {
 
@@ -203,7 +197,6 @@ EL.chooseTypePage.continueBtn.addEventListener("click", async () => {
 
         if (!isServerSet) {
             data = await checkForServerInRoom();
-            console.log(data);
         }
 
         // Server found
@@ -221,16 +214,10 @@ EL.chooseTypePage.continueBtn.addEventListener("click", async () => {
                 parseInt(_user.server.timestamp_usec),
                 30,
                 getEpochUsec(),
-                0 // TODO test needed? Works?
+                0
             );
 
-            console.log(_user.server.timestamp_usec);
-            console.log(getEpochUsec());
-            console.log(_user.offset_usec);
-            console.log(startTime);
-
             _metronomeClient.start(startTime);
-            //_metronomeClient.startNow();
             _metronomeClient.unmute();
         }
         // No server found
@@ -273,14 +260,18 @@ EL.setupTab.server.setReferenceBtn.addEventListener("click", async () => {
 EL.setupTab.client.saveOffsetBtn.addEventListener("click", async () => {
 
     try {
+        let offset = _metronomeClient.getOffset();
+
         const response = await postJsonAsync(API_SAVE_CLIENT_OFFSET, {
             room_id: _user.room_id,
             user_id: _user.user_id,
-            offset_usec: _metronomeClient.getOffset()
+            offset_usec: offset
         });
-        console.log(response);
         if (response.success === true) {
+
+            _user.offset_usec = offset;
             log("Offset saved.");
+
         } else {
             log(`Error: ${JSON.stringify(response)}`);
         }
@@ -389,8 +380,16 @@ document.getElementById("clearDb").addEventListener("click", async () => {
 EL.setupTab.client.offsetAdjustPills.forEach(btn => {
     btn.addEventListener('click', () => {
 
-        _metronomeClient.setOffset(_metronomeClient.getOffset() + parseInt(btn.dataset.delta));
-        EL.setupTab.client.offsetLabel.textContent = formatUsecToSec(_metronomeClient.getOffset());
+        let value = parseInt(btn.dataset.delta);
+
+        let offset = _metronomeClient.getOffset() + parseInt(btn.dataset.delta);
+
+        if (value === 0) { // Reset btn
+            offset = 0;
+        }
+
+        _metronomeClient.setOffset(offset);
+        EL.setupTab.client.offsetLabel.textContent = formatUsecToSec(offset);
 
     });
 });
@@ -435,38 +434,7 @@ function formatUsecToSec(usec) {
     return seconds.toFixed(3).padStart(6, '0'); // ensures 00.000 style
 }
 
-async function postJsonAsyncTODO(url, payload) {
-    try {
-
-        console.log(payload);
-
-        const r = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
-        let response = r.json();
-
-        console.log(response);
-
-        if (response.success === true) {
-
-            return response;
-
-        } else {
-            log(`Error: ${JSON.stringify(response)}`);
-            console.error(response);
-        }
-    } catch (e) {
-        log('Network error: ' + e.message);
-        console.error(response);
-    }
-}
-
 async function postJsonAsync(url, payload) {
-    console.log(payload);
     const r = await fetch(url, {
         method: 'POST',
         headers: {
@@ -475,18 +443,6 @@ async function postJsonAsync(url, payload) {
         body: JSON.stringify(payload)
     });
     return r.json();
-}
-
-function postJson(url, payload) {
-    console.log(JSON.stringify(payload));
-    return fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    })
-        .then(response => response.json());
 }
 
 function log(message) {

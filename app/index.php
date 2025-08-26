@@ -156,6 +156,7 @@
                         <button data-delta="1000">+1</button>
                         <button data-delta="10000">+10</button>
                         <button data-delta="100000">+100</button>
+                        <button data-delta="0">Reset</button>
                         <button data-delta="-1000">-1</button>
                         <button data-delta="-10000">-10</button>
                         <button data-delta="-100000">-100</button>
