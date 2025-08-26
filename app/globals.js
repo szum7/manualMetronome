@@ -34,6 +34,7 @@ const EL = {
         "tabMetronome": document.getElementById("tabMetronome"),
     },
     "header": {
+        "header": document.getElementById("header"),
         "userIdLabel": document.getElementById("userIdLabel"),
         "roomIdLabel": document.getElementById("roomIdLabel"),
         "changeRoomIdBtn": document.getElementById("changeRoomIdBtn"),
@@ -52,8 +53,6 @@ const EL = {
         },
         "client": {
             "content": document.getElementById("contentClient"),
-            // "contentNoRef": document.getElementById("contentClientAlert"),
-            // "contentInner": document.getElementById("contentClientInner"),
             "circle": document.getElementById("clientCircle"),
             "blinker": document.getElementById("clientBlinker"),
             "saveOffsetBtn": document.getElementById("saveOffsetBtn"),

@@ -1,0 +1,9 @@
+.bg-btn1 { background: var(--btn1); }
+.bg-btn2 { background: var(--btn2); }
+.bg-bg1 { background: var(--bg1); }
+.mr10 { margin-right: 10px; }
+.mb10 { margin-bottom: 10px; }
+.mb20 { margin-bottom: 20px; }
+.w100 { width: 100%; }
+.center { text-align: center; }
+.hidden { display: none !important; }

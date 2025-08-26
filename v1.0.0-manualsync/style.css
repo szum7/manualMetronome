@@ -252,12 +252,6 @@ body {
     color: var(--muted);
 }
 
-.tempo-label {
-    margin-left: 6px;
-    font-size: 0.9em;
-    color: var(--muted);
-}
-
 /* Bottom log */
 .bottom-log {
     position: fixed;

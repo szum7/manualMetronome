@@ -1,5 +1,10 @@
 document.querySelectorAll(".tab-button").forEach(btn => {
     btn.addEventListener("click", () => {
+
+        _metronomeServer.mute();
+        _metronomeClient.mute();
+        _metronome.stop();
+
         document.querySelectorAll(".tab-button").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         const tab = btn.dataset.tab;
@@ -9,12 +14,14 @@ document.querySelectorAll(".tab-button").forEach(btn => {
 });
 
 EL.chooseTypePage.scToggle.addEventListener('change', () => {
-    _metronomeServer.mute();
-    _metronomeClient.mute();
+    
 });
 
 EL.header.changeRoomIdBtn.addEventListener("click", () => {
-    hide(EL.mainApp.page);
+    _metronomeServer.mute();
+    _metronomeClient.mute();
+    _metronome.stop();
+    hideAllPage();
     show(EL.initPage.page);
 });
 
@@ -50,3 +57,7 @@ EL.header.typeSelect.addEventListener("change", () => {
 function hide(el) { el.classList.toggle('hidden', true); }
 function show(el) { el.classList.toggle('hidden', false); }
 function toggle(el, value) { el.classList.toggle('hidden', value); }
+
+function hideAllPage() {
+    document.querySelectorAll(".hidable").forEach(b => hide(b));
+}

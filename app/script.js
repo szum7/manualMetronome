@@ -135,6 +135,7 @@ EL.knownUserPage.resetBtn.addEventListener("click", async () => {
         if (isSuccessfulCall(response)) {
 
             hideAllPage();
+            EL.header.roleLabel.textContent = "?";
             show(EL.chooseTypePage.page);
 
         } else {
@@ -148,9 +149,12 @@ EL.knownUserPage.resetBtn.addEventListener("click", async () => {
 EL.knownUserPage.continueBtn.addEventListener("click", async () => {
 
     if (_user.is_ref === true) { // Server
+        
+        EL.header.roleLabel.textContent = "SERVER";
+        EL.header.offsetLabel.textContent = "0";
 
         hideAllPage();
-        show(EL.mainApp.page);
+        showMainPage();
         show(EL.setupTab.server.content);
 
         let startTime = calculateStartTimeUsec(
@@ -163,6 +167,8 @@ EL.knownUserPage.continueBtn.addEventListener("click", async () => {
         EL.mainApp.tabMetronome.click(); // Set to the Metronome tab
 
     } else { // Client
+        
+        EL.header.roleLabel.textContent = "Client";
 
         let isServerSet = isServerSetLocally();
         let data;
@@ -178,9 +184,11 @@ EL.knownUserPage.continueBtn.addEventListener("click", async () => {
                 _user.server.user_id = data.response.server.user_id;
                 _user.server.timestamp_usec = data.response.server.timestamp_usec;
             }
+            
+            EL.header.offsetLabel.textContent = formatUsecToSec(_user.offset_usec) + "s";
 
             hideAllPage();
-            show(EL.mainApp.page);
+            showMainPage();
             show(EL.setupTab.client.content);
 
             let startTime = calculateStartTimeUsec(
@@ -208,6 +216,8 @@ EL.chooseTypePage.continueBtn.addEventListener("click", async () => {
     let value = EL.chooseTypePage.scToggle.checked;
 
     if (value === true) { // Client
+        
+        EL.header.roleLabel.textContent = "Client";
 
         hideAllPage();
 
@@ -226,7 +236,7 @@ EL.chooseTypePage.continueBtn.addEventListener("click", async () => {
                 _user.server.timestamp_usec = data.response.server.timestamp_usec;
             }
 
-            show(EL.mainApp.page);
+            showMainPage();
             show(EL.setupTab.client.content);
 
             let startTime = calculateStartTimeUsec(
@@ -245,9 +255,12 @@ EL.chooseTypePage.continueBtn.addEventListener("click", async () => {
         }
 
     } else { // Server
+        
+        EL.header.roleLabel.textContent = "SERVER";
+        EL.header.offsetLabel.textContent = "0";
 
-        hideAllPage();
-        show(EL.mainApp.page);
+        hideAllPage();        
+        showMainPage();
         show(EL.setupTab.server.content);
 
         let startTime = getEpochUsec();
@@ -256,6 +269,11 @@ EL.chooseTypePage.continueBtn.addEventListener("click", async () => {
 
     }
 });
+
+function showMainPage() {
+    show(EL.header.header);
+    show(EL.mainApp.page);
+}
 
 // Setup/Server Save Reference
 EL.setupTab.server.setReferenceBtn.addEventListener("click", async () => {
@@ -289,6 +307,9 @@ EL.setupTab.client.saveOffsetBtn.addEventListener("click", async () => {
         if (response.success === true) {
 
             _user.offset_usec = offset;
+            
+            EL.header.offsetLabel.textContent = formatUsecToSec(_user.offset_usec) + "s";
+
             log("Offset saved.");
 
         } else {
@@ -360,11 +381,13 @@ EL.waitForServerPage.checkBtn.addEventListener("click", async () => {
 
     if (data.result === true) {
 
+        log("Server found.");
+
         _user.server.user_id = data.response.server.user_id;
         _user.server.timestamp_usec = data.response.server.timestamp_usec;
 
         hideAllPage();
-        show(EL.mainApp.page);
+        showMainPage();
         show(EL.setupTab.client.content);
 
         let startTime = calculateStartTimeUsec(
@@ -376,6 +399,8 @@ EL.waitForServerPage.checkBtn.addEventListener("click", async () => {
         _metronomeClient.start(startTime);
         _metronomeClient.unmute();
 
+    } else {
+        log("No server found.");
     }
 });
 
@@ -450,7 +475,8 @@ function getEpochUsec() {
 
 function formatUsecToSec(usec) {
     const seconds = usec / 1_000_000;
-    return seconds.toFixed(3).padStart(6, '0'); // ensures 00.000 style
+    //return seconds.toFixed(3).padStart(6, '0'); // ensures 00.000 style
+    return seconds.toFixed(3); // 0.000
 }
 
 async function postJsonAsync(url, payload) {
@@ -526,9 +552,7 @@ function isUserNew(response) { return response.found !== true; }
 function isServerSet(response) { return !!response.server.user_id; }
 function isServerSetLocally() { return !!_user.server.user_id; }
 
-function hideAllPage() {
-    document.querySelectorAll(".hidable").forEach(b => hide(b));
-}
+
 
 
 const _navTimeOriginUsec = Math.round(performance.timeOrigin * 1000);
