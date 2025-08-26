@@ -55,6 +55,7 @@
 
     <!-- Page: Enter Room -->
     <div id="initPage" class="full-page-center hidable">
+        <p>v0.6</p>
         <h2>Enter Room ID</h2>
         <input id="initialRoomId" type="text" value="123">
         <button id="initPageBtn">Continue</button>

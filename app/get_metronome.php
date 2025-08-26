@@ -36,6 +36,7 @@ if (count($rows) > 0) {
     
     $ret["found1"] = true;
     $ret["bpm"] = intval($rows[0]["bpm"]);
+    $ret["absolute_start_timestamp_usec"] = intval($rows[0]["absolute_start_timestamp_usec"]);
 
 }
 

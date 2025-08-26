@@ -6,12 +6,19 @@ document.getElementById("setMetronomeBtn").addEventListener("click", async () =>
 
     let bpm = parseInt(document.getElementById("bpm").value);
 
+    let now = getEpochUsec();
+    let absStartTime = now - _user.offset_usec;
+
+    log(`[USER] offset: ${formatUsecToSec(_user.offset_usec)} s, now: ${formatUsec(now)}`);
+    log(`[MET SET] ${bpm} bpm, absStart: ${formatUsec(absStartTime)}`);
+ 
     try {
 
         let response = await postJsonAsync(API_SET_METRONOME, {
             room_id: _user.room_id,
             user_id: _user.user_id,
-            bpm: bpm
+            bpm: bpm,
+            absolute_start_timestamp_usec: absStartTime
         });
 
         if (response.success === true) {
@@ -42,13 +49,25 @@ document.getElementById("startMetronome").addEventListener("click", async () => 
 
                 document.getElementById("roomBpm").textContent = response.bpm;
 
+                let now = getEpochUsec();
                 let startTime = calculateStartTimeUsec2(
-                    response.ref_start_usec,
-                    30,
-                    getEpochUsec(),
-                    response.offset,
+                    response.absolute_start_timestamp_usec,
+                    response.bpm,
+                    now,
+                    //response.offset * (response.bpm / 30),
+                    //
+                    0,
                     4
                 );
+
+                startTime = startTime + response.offset;
+
+                log(`[RECEIVED] now: ${formatUsec(now)}`);
+                log(`[RECEIVED] ${response.bpm} bpm, offset: ${formatUsecToSec(response.offset)}`);
+                log(`[RECEIVED] absStart: ${formatUsec(response.absolute_start_timestamp_usec)}`);
+
+                log(`[SCHEDULE] start: ${formatUsec(startTime)}`);
+
                 _metronome.start(startTime, response.bpm);
 
             } else {
@@ -470,7 +489,7 @@ function calculateStartTimeUsec(referenceStartUsec, bpm, nowUsec, offsetUsec = 0
     return adjustedStart + (beatsElapsed + 1) * beatPeriodUsec;
 }
 
-function calculateStartTimeUsec2(referenceStartUsec, bpm, nowUsec, offsetUsec = 0, beatsPerMeasure = 4) {
+function calculateStartTimeUsec2(referenceStartUsec, bpm, nowUsec, offsetUsec, beatsPerMeasure) {
     const beatPeriodUsec = (60 / bpm) * 1_000_000;
     const measurePeriodUsec = beatsPerMeasure * beatPeriodUsec;
 
@@ -486,7 +505,7 @@ function calculateStartTimeUsec2(referenceStartUsec, bpm, nowUsec, offsetUsec = 
     const measuresElapsed = Math.floor(elapsed / measurePeriodUsec);
 
     // The start time of the NEXT measure (so "one" hits correctly)
-    return adjustedStart + (measuresElapsed + 1) * measurePeriodUsec;
+    return adjustedStart + ((measuresElapsed + 1) * measurePeriodUsec);
 }
 
 

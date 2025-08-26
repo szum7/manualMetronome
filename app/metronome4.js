@@ -76,11 +76,17 @@ class Metronome4 {
         const elapsed = nowUsec - this.#startUsec;
 
         if (elapsed >= 0) {
+            
             const beatIndex = Math.floor(elapsed / beatPeriodUsec) % 4;
+
             if (beatIndex !== this.#currentBeat) {
+
                 this.#currentBeat = beatIndex;
                 this.#highlightCircle(beatIndex);
-                if (!this.#isMuted) this.#beep(beatIndex);
+
+                if (!this.#isMuted) {
+                    this.#beep(beatIndex);
+                }
             }
         }
 
