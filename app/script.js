@@ -271,7 +271,7 @@ EL.chooseTypePage.continueBtn.addEventListener("click", async () => {
 });
 
 function showMainPage() {
-    show(EL.header.header);
+    //show(EL.header.header);
     show(EL.mainApp.page);
 }
 
