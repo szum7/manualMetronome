@@ -10,6 +10,7 @@ class Metronome4 {
     #tickPitch;
     #tickType;
     #volume;
+    #isFalloff = true;
 
     constructor(containerId, tickPitch, tickType) {
         this.#tickPitch = tickPitch;
@@ -61,6 +62,10 @@ class Metronome4 {
     
     setTickType(value) {
         this.#tickType = value;
+    }
+    
+    setIsFalloff(value) {
+        this.#isFalloff = value;
     }
 
     #getEpochUsec() {
@@ -121,8 +126,11 @@ class Metronome4 {
 
         // Sets the volume
         gainNode.gain.setValueAtTime(maxVolume, this.#audioCtx.currentTime);
-        // Makes the sound naturally fade out
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, this.#audioCtx.currentTime + 0.1);
+
+        if (this.#isFalloff === true) {
+            // Makes the sound naturally fade out
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, this.#audioCtx.currentTime + 0.1);
+        }
 
         osc.connect(gainNode).connect(this.#audioCtx.destination);
         osc.start();

@@ -54,6 +54,18 @@ EL.header.typeSelect.addEventListener("change", () => {
     _metronome.setTickType(value);
 });
 
+document.getElementById("falloffChb").addEventListener("change", () => {
+    if (document.getElementById("falloffChb").checked) {
+        _metronomeServer.setIsFalloff(true);
+        _metronomeClient.setIsFalloff(true);
+        _metronome.setIsFalloff(true);
+    } else {
+        _metronomeServer.setIsFalloff(false);
+        _metronomeClient.setIsFalloff(false);
+        _metronome.setIsFalloff(false);
+    }
+});
+
 function hide(el) { el.classList.toggle('hidden', true); }
 function show(el) { el.classList.toggle('hidden', false); }
 function toggle(el, value) { el.classList.toggle('hidden', value); }

@@ -1,5 +1,6 @@
 <?php
 $production = false;
+$version = "1.3.0";
 
 if ($production == true) {
     require_once 'secret.php';

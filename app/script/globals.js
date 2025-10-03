@@ -1,10 +1,10 @@
 // Api urls
-const API_GET_USER = "get_user.php";
-const API_SET_AS_SERVER = "save_as_server.php";
-const API_SAVE_CLIENT_OFFSET = "save_user_offset.php";
-const API_DELETE_USER = "delete_user.php";
-const API_GET_METRONOME = "get_metronome.php";
-const API_SET_METRONOME = "set_metronome.php";
+const API_GET_USER = "api/get_user.php";
+const API_SET_AS_SERVER = "api/save_as_server.php";
+const API_SAVE_CLIENT_OFFSET = "api/save_user_offset.php";
+const API_DELETE_USER = "api/delete_user.php";
+const API_GET_METRONOME = "api/get_metronome.php";
+const API_SET_METRONOME = "api/set_metronome.php";
 
 // Elements
 const EL = {

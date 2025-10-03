@@ -11,6 +11,7 @@ class Metronome {
     #tickPitch;
     #tickType;
     #volume;
+    #isFalloff = true;
 
     // Constructor
     constructor(element, bpm, tickPitch, tickType) {
@@ -62,6 +63,10 @@ class Metronome {
     
     setVolume(value) {
         this.#volume = value;
+    }
+    
+    setIsFalloff(value) {
+        this.#isFalloff = value;
     }
 
     // Getters
@@ -120,8 +125,11 @@ class Metronome {
 
         // Sets the volume
         gainNode.gain.setValueAtTime(maxVolume, this.#audioCtx.currentTime);
+
         // Makes the sound naturally fade out
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, this.#audioCtx.currentTime + 0.1);
+        if (this.#isFalloff === true) {
+            gainNode.gain.exponentialRampToValueAtTime(0.0001, this.#audioCtx.currentTime + 0.1);
+        }
 
         osc.connect(gainNode).connect(this.#audioCtx.destination);
         osc.start();

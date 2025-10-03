@@ -374,7 +374,14 @@ input:checked+.slider:before {
     text-align: right;
 }
 
+.checkbox-lbl {
+    vertical-align: top;
+}
 
+input[type="checkbox"] {
+    padding: 0;
+    margin: 0 4px 0 0;
+}
 
 /* Metronome */
 #metronome-circles {

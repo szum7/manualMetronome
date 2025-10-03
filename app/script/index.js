@@ -1,5 +1,6 @@
 // RUN
 generateUserId();
+document.getElementById("falloffChb").checked = true; // Reset
 
 // Functions
 document.getElementById("setMetronomeBtn").addEventListener("click", async () => {

@@ -1,3 +1,6 @@
+<?php 
+require_once "config.php"; 
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,8 +8,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Metronome App</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="dropstyles.css">
+    <link rel="stylesheet" href="style/index.css">
+    <link rel="stylesheet" href="style/dropstyles.css">
 </head>
 
 <body>
@@ -19,7 +22,7 @@
             <div class="field">Offset: <span id="offsetLabel">?</span></div>
             <div class="field">Role: <span id="roleLabel">?</span></div>
             <div class="field">
-                <label>Pitch: </label>
+                <!-- <label>Pitch: </label> -->
                 <select id="pitchSelect">
                     <option value="500">Low</option>
                     <option value="1200">Medium</option>
@@ -27,7 +30,7 @@
                 </select>
             </div>
             <div class="field">
-                <label>Type: </label>
+                <!-- <label>Type: </label> -->
                 <select id="typeSelect">
                     <option value="sine">Sine</option>
                     <option value="square">Square</option>
@@ -36,8 +39,10 @@
                 </select>
             </div>
             <div class="field">
-                <label>Volume: </label>
+                <!-- <label>Volume: </label> -->
                 <select id="volumeSelect">
+                    <option value="0.1">1</option>
+                    <option value="0.2">2</option>
                     <option value="0.3">3</option>
                     <option value="0.4">4</option>
                     <option value="0.5">5</option>
@@ -47,6 +52,12 @@
                     <option value="0.9">9</option>
                     <option value="1.0">10</option>
                 </select>
+            </div>
+            <div class="field">
+                <label class="checkbox-lbl">
+                    <input type="checkbox" id="falloffChb" checked>
+                    Falloff
+                </label>
             </div>
         </div>
     </header>
@@ -184,17 +195,17 @@
         <div class="btns">
             <div class="padder-mini">
                 <button id="refreshPage" class="small-btn mr10">Refresh page</button>
-                <div class="mr10">version 1.1</div>
+                <div class="mr10">version <?= $version; ?></div>
                 <button id="clearDb" class="small-btn red">Clear DB</button>
             </div>
         </div>
     </footer>
 
-    <script src="metronome.js"></script>
-    <script src="metronome4.js"></script>
-    <script src="globals.js"></script>
-    <script src="content.js"></script>
-    <script src="script.js"></script>
+    <script src="script/metronome.js"></script>
+    <script src="script/metronome4.js"></script>
+    <script src="script/globals.js"></script>
+    <script src="script/content.js"></script>
+    <script src="script/index.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>
